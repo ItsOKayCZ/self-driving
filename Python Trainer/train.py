@@ -8,6 +8,7 @@ import datetime
 from variables import max_trained_epochs,exploration_chance_start,exploration_reduce,num_training_examples
 import argparse
 import json
+import torch
 
 parser = argparse.ArgumentParser()
 parser.add_argument('-n', '--num-areas', type=int, default=1)
@@ -27,6 +28,9 @@ if __name__ == "__main__":
 	env = UnityEnvironment(file_name=env_location, num_areas=NUM_AREAS)
 	env.reset()
 
+	device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+	print(f'----- Running on {device}')
+
 	# get the action space and observation space
 	print(env.behavior_specs)
 	behavior_name = list(env.behavior_specs)[0]
@@ -43,8 +47,8 @@ if __name__ == "__main__":
 
 	results = []
 	try:
-		qnet = QNetwork(visual_input_shape = (1, 64, 64), nonvis_input_shape=(1,), encoding_size=126)
-		trainer = Trainer(model=qnet,buffer_size=num_training_examples, num_agents=NUM_AREAS)
+		qnet = QNetwork(visual_input_shape = (1, 64, 64), nonvis_input_shape=(1,), encoding_size=126, device=device)
+		trainer = Trainer(model=qnet,buffer_size=num_training_examples, device=device, num_agents=NUM_AREAS)
 		scheduler = Scheduler(num_epochs, exploration_chance_start)
 
 		if SAVE_MODEL:

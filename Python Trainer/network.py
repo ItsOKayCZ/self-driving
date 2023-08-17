@@ -12,25 +12,28 @@ mirrored_actions = [2,1,0]
 
 class QNetwork(torch.nn.Module):
 
-    def __init__(self, visual_input_shape, nonvis_input_shape, encoding_size):
+    def __init__(self, visual_input_shape, nonvis_input_shape, encoding_size, device):
         super(QNetwork, self).__init__()
         height = visual_input_shape[1]
         width = visual_input_shape[2]
         initial_channels = visual_input_shape[0]
 
-        self.output_shape = (1,len(action_options))
-        self.visual_input_shape = visual_input_shape
-        self.nonvis_input_shape = nonvis_input_shape
-        # calculating required size of the dense layer based on the conv layers
-        conv_1_hw = self.conv_output_shape((height, width), 5, 1)
-        conv_2_hw = self.conv_output_shape(conv_1_hw, 3, 1)
-        self.final_flat = conv_2_hw[0] * conv_2_hw[1] * 32
-        # layers
-        self.conv1 = torch.nn.Conv2d(initial_channels, 16, 5)
-        self.conv2 = torch.nn.Conv2d(16, 32, 3)
-        self.nonvis_dense = torch.nn.Linear(nonvis_input_shape[0], 8)
-        self.dense1 = torch.nn.Linear(self.final_flat + 8, encoding_size)
-        self.dense2 = torch.nn.Linear(encoding_size, self.output_shape[1])
+        self.device = device
+
+        with torch.device(self.device):
+            self.output_shape = (1,len(action_options))
+            self.visual_input_shape = visual_input_shape
+            self.nonvis_input_shape = nonvis_input_shape
+            # calculating required size of the dense layer based on the conv layers
+            conv_1_hw = self.conv_output_shape((height, width), 5, 1)
+            conv_2_hw = self.conv_output_shape(conv_1_hw, 3, 1)
+            self.final_flat = conv_2_hw[0] * conv_2_hw[1] * 32
+            # layers
+            self.conv1 = torch.nn.Conv2d(initial_channels, 16, 5)
+            self.conv2 = torch.nn.Conv2d(16, 32, 3)
+            self.nonvis_dense = torch.nn.Linear(nonvis_input_shape[0], 8)
+            self.dense1 = torch.nn.Linear(self.final_flat + 8, encoding_size)
+            self.dense2 = torch.nn.Linear(encoding_size, self.output_shape[1])
 
     def forward(self, observation: Tuple):
         visual_obs, nonvis_obs = observation
@@ -54,11 +57,11 @@ class QNetwork(torch.nn.Module):
         """
         
         if not use_tensor:
-            observation = (torch.from_numpy(observation[0]), torch.from_numpy(observation[1]))
+            observation = (torch.from_numpy(observation[0]).to(self.device), torch.from_numpy(observation[1]).to(self.device))
             self.eval()
             with torch.no_grad():
                 q_values = self.forward(observation)
-            q_values = q_values.numpy().flatten()
+            q_values = q_values.cpu().detach().numpy().flatten()
             action_index = np.argmax(q_values)
 
         else:

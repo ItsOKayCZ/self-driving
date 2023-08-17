@@ -120,13 +120,16 @@ class StateTargetValuesDataset(Dataset):
 
 
 class Trainer:
-    def __init__(self, model: QNetwork, buffer_size, num_agents=1):
+    def __init__(self, model: QNetwork, buffer_size, device, num_agents=1):
         """
         Class that manages creating a dataset and fitting the model
         :param model:
         :param buffer_size:
+        :param device:
         :param num_agents:
         """
+        self.device = device
+
         self.memory = ReplayBuffer(buffer_size)
         self.model = model
         self.loss_fn = torch.nn.MSELoss()
@@ -213,16 +216,30 @@ class Trainer:
         return all_rewards
 
     def fit(self, epochs: int):
+        temp_states, targets = self.memory.create_targets()
+        states = []
+        for state in temp_states:
+            states.append([torch.tensor(obs).to(self.device) for obs in state])
 
-        states, targets = self.memory.create_targets()
+        targets = torch.tensor(targets).to(self.device)
+
         dataset = StateTargetValuesDataset(states, targets)
         dataloader = DataLoader(dataset, batch_size=64, shuffle=True)
         for epoch in range(epochs):
             for batch in dataloader:
                 # We run the training step with the recorded inputs and new Q value targets.
                 X, y = batch
-                X = [X[0].view((-1, 1, 64, 64)), X[1].view((-1, 1))]
-                y = y.view(-1, self.model.output_shape[1])
+
+                # vis_X = X[0].to(self.device).view((-1, 1, 64, 64))
+                # nonvis_X = X[1].to(self.device).view((-1, 1))
+                vis_X = X[0].view((-1, 1, 64, 64))
+                nonvis_X = X[1].view((-1, 1))
+                X = [vis_X, nonvis_X]
+
+                # y = y.to(self.device).view(-1, self.model.output_shape[1])
+
+                # X = [X[0].view((-1, 1, 64, 64)), X[1].view((-1, 1))]
+                # y = y.view(-1, self.model.output_shape[1])
                 y_hat = self.model(X)
                 loss = self.loss_fn(y_hat, y)
                 print("loss", loss)
