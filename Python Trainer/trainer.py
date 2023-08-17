@@ -143,7 +143,7 @@ class Trainer:
         """
         # env.reset()
         rewards_stat = self.create_dataset(env, exploration_chance)
-        self.memory.flip_dataset()
+        # self.memory.flip_dataset()
         self.fit(4)
         self.memory.wipe()
         return rewards_stat
