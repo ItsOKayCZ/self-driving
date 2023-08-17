@@ -1,7 +1,7 @@
 import math
 
 class Scheduler:
-	def __init__(self, num_epochs, starting_exploration, num_resets=50):
+	def __init__(self, num_epochs, starting_exploration, num_resets=5):
 		self.num_epochs = num_epochs
 		self.starting_exploration = starting_exploration
 		self.num_resets = num_resets
