@@ -1,4 +1,5 @@
 import random
+import copy
 
 import numpy as np
 import torch
@@ -250,7 +251,7 @@ class Trainer:
 
     def save_model(self, path):
         torch.onnx.export(
-            WrapperNet(self.model),
+            WrapperNet(copy.deepcopy(self.model).cpu()),
             (
                 torch.randn((1,) + self.model.visual_input_shape), # Vis observation
                 torch.randn((1,) + self.model.nonvis_input_shape), # Non vis observation
