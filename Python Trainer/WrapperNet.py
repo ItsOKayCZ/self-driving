@@ -4,21 +4,6 @@ import torch
 from torch.nn import Parameter
 from torch.nn.functional import one_hot
 
-
-# NOTE: For use in unity, different input and output shape is needed
-# Inputs:
-# - shape: (-1, 64, 64, 1) -> Vis observation
-# - shape: (-1, 1, 1, 3) -> Nonvis observation
-# - shape: (-1, 1, 1, 4) -> Action mask
-#
-# Outputs:
-# - version_number: shape (1, 1, 1, 1) = [3]
-# - memory_size: shape (1, 1, 1, 1) = [0]
-# - discrete_actions: shape (1, 1, 1, 4) = [[2, 2, 2, 2]]
-# - discrete_action_output_shape: shape (1, 1, 1, 4) -> network.action_options
-# - deterministic_discrete_actions: shape (1, 1, 1, 4) -> network.action_options
-
-
 class WrapperNet(torch.nn.Module):
     def __init__(self, qnet: QNetwork):
         super(WrapperNet, self).__init__()
