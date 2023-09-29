@@ -288,7 +288,7 @@ public class PrometeoCarController : MonoBehaviour
 	}
 
 	// Update is called once per frame
-	public void Movement(bool useParams=false, bool forward=false, bool back=false, bool left=false, bool right=false)
+	public void Movement(bool useParams = false, bool forward = false, bool back = false, bool left = false, bool right = false, float speedMult = 1f)
 	{
 
 		//CAR DATA
@@ -329,7 +329,7 @@ public class PrometeoCarController : MonoBehaviour
 		{
 			CancelInvoke("DecelerateCar");
 			deceleratingCar = false;
-			GoForward();
+			GoForward(speedMult);
 		}
 		if (goBack)
 		{
@@ -502,8 +502,9 @@ public class PrometeoCarController : MonoBehaviour
 	//ENGINE AND BRAKING METHODS
 	//
 
+
 	// This method apply positive torque to the wheels in order to go forward.
-	public void GoForward(){
+	public void GoForward(float speedMult = 1f){
 	  //If the forces aplied to the rigidbody in the 'x' asis are greater than
 	  //3f, it means that the car is losing traction, then the car will start emitting particle systems.
 	  if(Mathf.Abs(localVelocityX) > 2.5f){
@@ -524,7 +525,7 @@ public class PrometeoCarController : MonoBehaviour
 	  if(localVelocityZ < -1f){
 		Brakes();
 	  }else{
-		if(Mathf.RoundToInt(carSpeed) < maxSpeed){
+		if(Mathf.RoundToInt(carSpeed) < maxSpeed * speedMult){
 		  //Apply positive torque in all wheels to go forward if maxSpeed has not been reached.
 		  frontLeftCollider.brakeTorque = 0;
 		  frontLeftCollider.motorTorque = (accelerationMultiplier * 50f) * throttleAxis;

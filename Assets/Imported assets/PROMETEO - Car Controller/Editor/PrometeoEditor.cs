@@ -1,6 +1,7 @@
 using UnityEngine;
 using UnityEditor;
 using UnityEditor.AnimatedValues;
+using Dreamteck.Splines.Primitives;
 
 [CustomEditor(typeof(PrometeoCarController))]
 [System.Serializable]
@@ -25,6 +26,7 @@ public class PrometeoEditor : Editor{
   private SerializedProperty decelerationMultiplier;
   private SerializedProperty handbrakeDriftMultiplier;
   private SerializedProperty bodyMassCenter;
+    private SerializedProperty speedMult;
   //
   //
   //WHEELS VARIABLES
@@ -88,6 +90,7 @@ public class PrometeoEditor : Editor{
     decelerationMultiplier = SO.FindProperty("decelerationMultiplier");
     handbrakeDriftMultiplier = SO.FindProperty("handbrakeDriftMultiplier");
     bodyMassCenter = SO.FindProperty("bodyMassCenter");
+        speedMult = SO.FindProperty("speedMult");
 
     frontLeftMesh = SO.FindProperty("frontLeftMesh");
     frontLeftCollider = SO.FindProperty("frontLeftCollider");
@@ -141,6 +144,7 @@ public class PrometeoEditor : Editor{
     brakeForce.intValue = EditorGUILayout.IntSlider("Brake Force:", brakeForce.intValue, 100, 600);
     decelerationMultiplier.intValue = EditorGUILayout.IntSlider("Deceleration Multiplier:", decelerationMultiplier.intValue, 1, 10);
     handbrakeDriftMultiplier.intValue = EditorGUILayout.IntSlider("Drift Multiplier:", handbrakeDriftMultiplier.intValue, 1, 10);
+        // speedMult.floatValue = EditorGUILayout.Slider("Speed multiplier:", speedMult.floatValue, 0f, 1f);
     EditorGUILayout.PropertyField(bodyMassCenter, new GUIContent("Mass Center of Car: "));
 
     //
