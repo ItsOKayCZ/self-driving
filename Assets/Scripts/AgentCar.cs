@@ -53,7 +53,7 @@ public class AgentCar : Agent
 
     public override void CollectObservations(VectorSensor sensor)
     {
-		sensor.AddObservation(carController.carSpeed);
+		// sensor.AddObservation(carController.carSpeed);
 		// sensor.AddObservation(carController.currentSteerAngle);
 		sensor.AddObservation(carController.steeringAxis);
 
