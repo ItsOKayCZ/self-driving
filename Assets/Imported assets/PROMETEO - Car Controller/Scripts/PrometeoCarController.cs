@@ -288,7 +288,8 @@ public class PrometeoCarController : MonoBehaviour
 	}
 
 	// Update is called once per frame
-	public void Movement(bool useParams = false, bool forward = false, bool back = false, bool left = false, bool right = false, float speedMult = 1f)
+	// public void Movement(bool useParams = false, bool forward = false, bool back = false, bool left = false, bool right = false, float speedMult = 1f)
+	public void Movement(bool useParams = false, float speedMult = 1f, float turnMult = 0f)
 	{
 
 		//CAR DATA
@@ -319,10 +320,10 @@ public class PrometeoCarController : MonoBehaviour
 
 		if(useParams)
 		{
-			goForward = forward;
-			goBack = back;
-			turnLeft = left;
-			turnRight = right;
+			goForward = speedMult > 0f;
+			goBack = false;
+			turnLeft = turnMult < 0f;
+			turnRight = turnMult > 0f;
 		}
 
 		if (goForward)
@@ -340,11 +341,11 @@ public class PrometeoCarController : MonoBehaviour
 
 		if (turnLeft)
 		{
-			TurnLeft();
+			TurnLeft(turnMult);
 		}
 		if (turnRight)
 		{
-			TurnRight();
+			TurnRight(turnMult);
 		}
 		if (!useParams && Input.GetKey(KeyCode.Space))
 		{
@@ -426,23 +427,23 @@ public class PrometeoCarController : MonoBehaviour
 	//
 
 	//The following method turns the front car wheels to the left. The speed of this movement will depend on the steeringSpeed variable.
-	public void TurnLeft(){
+	public void TurnLeft(float turnMult = -1f){
 	  steeringAxis = steeringAxis - (Time.deltaTime * 10f * steeringSpeed);
 	  if(steeringAxis < -1f){
 		steeringAxis = -1f;
 	  }
-	  var steeringAngle = steeringAxis * maxSteeringAngle;
+	  var steeringAngle = steeringAxis * maxSteeringAngle * turnMult * -1;
 	  frontLeftCollider.steerAngle = Mathf.Lerp(frontLeftCollider.steerAngle, steeringAngle, steeringSpeed);
 	  frontRightCollider.steerAngle = Mathf.Lerp(frontRightCollider.steerAngle, steeringAngle, steeringSpeed);
 	}
 
 	//The following method turns the front car wheels to the right. The speed of this movement will depend on the steeringSpeed variable.
-	public void TurnRight(){
+	public void TurnRight(float turnMult = 1f){
 	  steeringAxis = steeringAxis + (Time.deltaTime * 10f * steeringSpeed);
 	  if(steeringAxis > 1f){
 		steeringAxis = 1f;
 	  }
-	  var steeringAngle = steeringAxis * maxSteeringAngle;
+	  var steeringAngle = steeringAxis * maxSteeringAngle * turnMult;
 	  frontLeftCollider.steerAngle = Mathf.Lerp(frontLeftCollider.steerAngle, steeringAngle, steeringSpeed);
 	  frontRightCollider.steerAngle = Mathf.Lerp(frontRightCollider.steerAngle, steeringAngle, steeringSpeed);
 	}

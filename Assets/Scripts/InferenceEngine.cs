@@ -48,7 +48,7 @@ public class InferenceEngine : MonoBehaviour
         Debug.Log(actions[0, 0, 0, 3]);
         Debug.Log("___________________________");
 
-        carController.Movement(true, goForward, goBack, turnLeft, turnRight);
+        // carController.Movement(true, goForward, goBack, turnLeft, turnRight);
 
         actions.Dispose();
     }

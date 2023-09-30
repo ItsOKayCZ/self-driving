@@ -457,7 +457,7 @@ MonoBehaviour:
     go: {fileID: 0}
   trackPieceSize: 20
   activeTracksAtOnce: 4
-  triesPerTrack: 1
+  triesPerTrack: 5
   checkpointParent: {fileID: 1904918790}
   checkpointMarker: {fileID: 4096870464940643553, guid: 34cf1552bf198ac4c9b60a9e17836c05, type: 3}
   checkpoints: []
@@ -817,34 +817,6 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: -1987677041437309144, guid: f02a9da96fe553f4193c7e617f9bb513, type: 3}
       propertyPath: m_AngularDrag
-      value: 1
-      objectReference: {fileID: 0}
-    - target: {fileID: 4633599328643637399, guid: f02a9da96fe553f4193c7e617f9bb513, type: 3}
-      propertyPath: m_Enabled
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 4633599328643637399, guid: f02a9da96fe553f4193c7e617f9bb513, type: 3}
-      propertyPath: modelAsset
-      value: 
-      objectReference: {fileID: 5022602860645237092, guid: 87c4468d538fbf9418a75e0156224728, type: 3}
-    - target: {fileID: 6282186034757043640, guid: f02a9da96fe553f4193c7e617f9bb513, type: 3}
-      propertyPath: m_BehaviorType
-      value: 1
-      objectReference: {fileID: 0}
-    - target: {fileID: 6282186034757043640, guid: f02a9da96fe553f4193c7e617f9bb513, type: 3}
-      propertyPath: m_BrainParameters.VectorObservationSize
-      value: 1
-      objectReference: {fileID: 0}
-    - target: {fileID: 6282186034757043640, guid: f02a9da96fe553f4193c7e617f9bb513, type: 3}
-      propertyPath: m_BrainParameters.VectorActionSize.Array.size
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 6282186034757043640, guid: f02a9da96fe553f4193c7e617f9bb513, type: 3}
-      propertyPath: m_BrainParameters.m_ActionSpec.BranchSizes.Array.size
-      value: 2
-      objectReference: {fileID: 0}
-    - target: {fileID: 6282186034757043640, guid: f02a9da96fe553f4193c7e617f9bb513, type: 3}
-      propertyPath: m_BrainParameters.m_ActionSpec.m_NumContinuousActions
       value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 6282186034757043643, guid: f02a9da96fe553f4193c7e617f9bb513, type: 3}

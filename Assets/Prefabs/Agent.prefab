@@ -10884,11 +10884,11 @@ MonoBehaviour:
     VectorObservationSize: 1
     NumStackedVectorObservations: 1
     m_ActionSpec:
-      m_NumContinuousActions: 0
-      BranchSizes: 02000000020000000200000002000000
-    VectorActionSize: 02000000020000000200000002000000
+      m_NumContinuousActions: 2
+      BranchSizes: 
+    VectorActionSize: 02000000
     VectorActionDescriptions: []
-    VectorActionSpaceType: 0
+    VectorActionSpaceType: 1
     hasUpgradedBrainParametersWithActionSpec: 1
   m_Model: {fileID: 0}
   m_InferenceDevice: 0
@@ -10927,12 +10927,12 @@ MonoBehaviour:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 6282186036658918038}
-  m_Enabled: 1
+  m_Enabled: 0
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 60f07460b9e2c9547aff4d2f4c12bf14, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  modelAsset: {fileID: 0}
+  modelAsset: {fileID: 5022602860645237092, guid: 87c4468d538fbf9418a75e0156224728, type: 3}
   renderTexture: {fileID: 8400000, guid: 2c664c19210c0b648b40e3e9e752df8e, type: 2}
   carController: {fileID: 6282186034757043643}
 --- !u!1 &6282186036672718645
