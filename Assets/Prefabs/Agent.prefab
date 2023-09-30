@@ -10739,6 +10739,7 @@ GameObject:
   - component: {fileID: 6282186034757043641}
   - component: {fileID: 6282186034757043640}
   - component: {fileID: 7970076265675784750}
+  - component: {fileID: 4633599328643637399}
   m_Layer: 0
   m_Name: Agent
   m_TagString: Untagged
@@ -10883,18 +10884,18 @@ MonoBehaviour:
     VectorObservationSize: 1
     NumStackedVectorObservations: 1
     m_ActionSpec:
-      m_NumContinuousActions: 0
-      BranchSizes: 02000000020000000200000002000000
-    VectorActionSize: 02000000020000000200000002000000
+      m_NumContinuousActions: 2
+      BranchSizes: 
+    VectorActionSize: 02000000
     VectorActionDescriptions: []
-    VectorActionSpaceType: 0
+    VectorActionSpaceType: 1
     hasUpgradedBrainParametersWithActionSpec: 1
   m_Model: {fileID: 0}
   m_InferenceDevice: 0
   m_BehaviorType: 0
   m_BehaviorName: CarBehavior
   TeamId: 0
-  m_UseChildSensors: 1
+  m_UseChildSensors: 0
   m_UseChildActuators: 1
   m_DeterministicInference: 0
   m_ObservableAttributeHandling: 0
@@ -10919,6 +10920,21 @@ MonoBehaviour:
   m_RuntimeCameraEnable: 0
   m_ObservationStacks: 1
   m_Compression: 1
+--- !u!114 &4633599328643637399
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6282186036658918038}
+  m_Enabled: 0
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 60f07460b9e2c9547aff4d2f4c12bf14, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  modelAsset: {fileID: 5022602860645237092, guid: 87c4468d538fbf9418a75e0156224728, type: 3}
+  renderTexture: {fileID: 8400000, guid: 2c664c19210c0b648b40e3e9e752df8e, type: 2}
+  carController: {fileID: 6282186034757043643}
 --- !u!1 &6282186036672718645
 GameObject:
   m_ObjectHideFlags: 0
@@ -10960,8 +10976,8 @@ Camera:
   m_GameObject: {fileID: 6282186036672718645}
   m_Enabled: 1
   serializedVersion: 2
-  m_ClearFlags: 1
-  m_BackGroundColor: {r: 0.19215687, g: 0.3019608, b: 0.4745098, a: 0}
+  m_ClearFlags: 2
+  m_BackGroundColor: {r: 1, g: 1, b: 1, a: 0}
   m_projectionMatrixMode: 1
   m_GateFitMode: 2
   m_FOVAxisMode: 0
@@ -10984,7 +11000,7 @@ Camera:
     serializedVersion: 2
     m_Bits: 4294967295
   m_RenderingPath: -1
-  m_TargetTexture: {fileID: 8400000, guid: 80a866ce18543884884dc3a623f5c99f, type: 2}
+  m_TargetTexture: {fileID: 8400000, guid: 2c664c19210c0b648b40e3e9e752df8e, type: 2}
   m_TargetDisplay: 0
   m_TargetEye: 3
   m_HDR: 0

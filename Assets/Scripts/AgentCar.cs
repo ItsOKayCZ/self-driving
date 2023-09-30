@@ -20,9 +20,10 @@ public class AgentCar : Agent
 	private bool pauseLearning = false;
 
 	const int k_Forward = 0;
-	const int k_Back = 1;
-	const int k_Left = 2;
-	const int k_Right = 3;
+	const int k_Turn = 1;
+	// const int k_Back = 1;
+	// const int k_Left = 0;
+	// const int k_Right = 1;
 
 	public PrometeoCarController carController;
 	// public CarController carController;
@@ -44,11 +45,11 @@ public class AgentCar : Agent
 
 		currentCheckpoint = 0;
 
-        rBody.velocity = Vector3.zero;
-        rBody.angularVelocity = Vector3.zero;
-
 		transform.position = transform.parent.position;
 		transform.rotation = Quaternion.identity;
+
+        rBody.velocity = Vector3.zero;
+        rBody.angularVelocity = Vector3.zero;
     }
 
     public override void CollectObservations(VectorSensor sensor)
@@ -109,15 +110,20 @@ public class AgentCar : Agent
 
     void TriggerAction(ActionBuffers actions)
 	{
-		bool goForward = actions.DiscreteActions[k_Forward] == 1;
-		// bool goForward = true;
-		bool goBack = actions.DiscreteActions[k_Back] == 1;
-		// bool goBack = false;
-		bool turnLeft = actions.DiscreteActions[k_Left] == 1;
-		bool turnRight = actions.DiscreteActions[k_Right] == 1;
+		float speedMult = actions.ContinuousActions[k_Forward];
+		float turnMult = actions.ContinuousActions[k_Turn];
+
+		// bool goForward = actions.DiscreteActions[k_Forward] == 1;
+		// bool goForward = false;
+		// if (speedMult > 0f) goForward = true;
+
+		// bool goBack = actions.DiscreteActions[k_Back] == 1;
+		// bool turnLeft = actions.DiscreteActions[k_Left] == 1;
+		// bool turnRight = actions.DiscreteActions[k_Right] == 1;
 		// Debug.Log($"Forward: {goForward}\nBackward: {goBack}\nLeft: {turnLeft}\nRight: {turnRight}");
 
-		carController.Movement(true, goForward, goBack, turnLeft, turnRight);
+		// carController.Movement(true, goForward, goBack, turnLeft, turnRight, speedMult);
+		carController.Movement(true, speedMult, turnMult);
 
 		/*
 		carController.verticalInput = carController.horizontalInput = 0;
@@ -193,8 +199,9 @@ public class AgentCar : Agent
 
         if(carController.carSpeed > 2f)
         {
-            float reward = getDrivenDistance();
-            // Debug.Log(reward);
+			float rewardMultBySpeed = Mathf.Clamp(carController.carSpeed / carController.maxSpeed, 0f, 1f);
+            float reward = getDrivenDistance() * rewardMultBySpeed;
+
             AddReward(reward);
         } else
         {
@@ -204,13 +211,17 @@ public class AgentCar : Agent
 		TriggerAction(actions);
     }
 
-    public override void Heuristic(in ActionBuffers actionsOut)
-    {
+	public override void Heuristic(in ActionBuffers actionsOut)
+	{
 		var discreteActionsOut = actionsOut.DiscreteActions;
+		var continuousActionsOut = actionsOut.ContinuousActions;
 
-		discreteActionsOut[k_Forward] = Input.GetKey(KeyCode.W) ? 1 : 0;
-		discreteActionsOut[k_Back] = Input.GetKey(KeyCode.S) ? 1 : 0;
-		discreteActionsOut[k_Left] = Input.GetKey(KeyCode.A) ? 1 : 0;
-		discreteActionsOut[k_Right] = Input.GetKey(KeyCode.D) ? 1 : 0;
+		// discreteActionsOut[k_Forward] = Input.GetKey(KeyCode.W) ? 1 : 0;
+		// discreteActionsOut[k_Back] = Input.GetKey(KeyCode.S) ? 1 : 0;
+		// discreteActionsOut[k_Left] = Input.GetKey(KeyCode.A) ? 1 : 0;
+		// discreteActionsOut[k_Right] = Input.GetKey(KeyCode.D) ? 1 : 0;
+
+		continuousActionsOut[k_Forward] = Mathf.Clamp(Input.GetAxisRaw("Vertical"), 0f, 1f);
+		continuousActionsOut[k_Turn] = Input.GetAxisRaw("Horizontal");
     }
 }

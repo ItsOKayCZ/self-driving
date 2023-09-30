@@ -1,4 +1,5 @@
 import random
+import copy
 
 import numpy as np
 import torch
@@ -7,7 +8,7 @@ from mlagents_envs.environment import ActionTuple
 from torch.utils.data import Dataset, DataLoader
 
 from WrapperNet import WrapperNet
-from network import QNetwork, action_options
+from network import QNetwork, action_options, mirrored_actions
 from variables import discount, reward_same_action, learning_rate
 
 
@@ -24,6 +25,18 @@ class Experience:
         self.actions.append(action)
         self.rewards.append(reward)
         self.predicted_values.append(predicted_values)
+
+    def flip(self):
+        new_observations = [(np.flip(vis, 2), nonvis) for vis, nonvis in self.observations]
+        new_actions = [mirrored_actions[x] if x is not None else None for x in self.actions]
+        new_predicted_values = [np.flip(x, 0) for x in self.predicted_values]
+
+        new_exp = Experience()
+        new_exp.observations = new_observations
+        new_exp.actions = new_actions
+        new_exp.rewards = self.rewards.copy()
+        new_exp.predicted_values = new_predicted_values
+        return new_exp
 
     def calculate_targets(self):
         targets = []
@@ -46,7 +59,6 @@ class Experience:
 
             # adjust
             target_matrix[action_index] = reward + max(self.predicted_values[e + 1]) * discount
-
             observation = [arr.astype("float32") for arr in observation]
             target_matrix = target_matrix.astype("float32")
             states.append(observation)
@@ -77,6 +89,19 @@ class ReplayBuffer():
             state_dataset += states
         return state_dataset, targets_dataset
 
+    def flip_dataset(self):
+        """
+        Mirrors the image and action data in dataset, effectively doubles it.
+        :return:
+        """
+        new_exps = []
+        for exp in self.buffer:
+            new_exp = exp.flip()
+            new_exps.append(new_exp)
+
+        for new_exp in new_exps:
+            self.buffer.append(new_exp)
+
     def wipe(self):
         self.buffer = []
 
@@ -97,17 +122,20 @@ class StateTargetValuesDataset(Dataset):
 
 
 class Trainer:
-    def __init__(self, model: QNetwork, buffer_size, num_agents=1):
+    def __init__(self, model: QNetwork, buffer_size, device, num_agents=1):
         """
         Class that manages creating a dataset and fitting the model
         :param model:
         :param buffer_size:
+        :param device:
         :param num_agents:
         """
+        self.device = device
+
         self.memory = ReplayBuffer(buffer_size)
         self.model = model
         self.loss_fn = torch.nn.MSELoss()
-        self.optim = torch.optim.Adam(self.model.parameters(), lr=learning_rate)
+        self.optim = torch.optim.Adam(self.model.parameters(), lr=learning_rate, weight_decay=1e-7)
 
         self.num_agents = num_agents
 
@@ -118,16 +146,14 @@ class Trainer:
         :param env:
         :return rewards earned:
         """
-        if self.num_agents == 1:
-            env.reset()
         # env.reset()
-
         rewards_stat = self.create_dataset(env, exploration_chance)
-        self.fit(4)
+        self.memory.flip_dataset()
+        self.fit(1)
         self.memory.wipe()
         return rewards_stat
 
-    def create_dataset(self, env, exploration_chance):
+    def create_dataset(self, env, temperature):
         behavior_name = list(env.behavior_specs)[0]
         all_rewards = 0
         # Read and store the Behavior Specs of the Environment
@@ -136,9 +162,9 @@ class Trainer:
         while not self.memory.is_full():
             num_exp += 1 * self.num_agents
             exps = [Experience() for _ in range(self.num_agents)]
+            terminated = [False for _ in range(self.num_agents)]
             while True:
-                decision_steps, terminal_steps = env.get_steps(behavior_name) # TODO: fix bug
-                # print(len(decision_steps),len(terminal_steps))
+                decision_steps, terminal_steps = env.get_steps(behavior_name)  #
                 order = (0, 3, 1, 2)
                 decision_steps.obs[0] = np.transpose(decision_steps.obs[0], order)
                 terminal_steps.obs[0] = np.transpose(terminal_steps.obs[0], order)
@@ -146,42 +172,40 @@ class Trainer:
                 dis_action_values = []
                 cont_action_values = []
 
-                for agent_id, i in terminal_steps.agent_id_to_index.items():
-                    # print(agent_id)
-                    exps[agent_id].add_instance(terminal_steps[agent_id].obs, None,
-                                                np.zeros(self.model.output_shape[1]),
-                                                terminal_steps[agent_id].reward)
-
-                for agent_id, i in decision_steps.agent_id_to_index.items():
-
-                    # Get the action
-                    if np.random.random() < exploration_chance:
-                        q_values = np.zeros(self.model.output_shape[1])
-                        action_index = random.choices(range(len(action_options)), k=1)[0]
-
-                    else:
-                        q_values, action_index = self.model.get_actions(decision_steps[agent_id].obs)
-
-                    # action_values = action_options[action_index]
-                    dis_action_values.append(action_options[action_index][0])
-                    cont_action_values.append([])
-                    exps[agent_id].add_instance(decision_steps[agent_id].obs, action_index, q_values.copy(),
-                                                decision_steps[agent_id].reward)
-                    # print(agent_id)
-
                 if len(decision_steps) == 0:
-                    # env.step()
-                    break
+                    for agent_id, i in terminal_steps.agent_id_to_index.items():
+                        exps[agent_id].add_instance(terminal_steps[agent_id].obs, None,
+                                                    np.zeros(self.model.output_shape[1]),
+                                                    terminal_steps[agent_id].reward)
+                        terminated[agent_id] = True
 
-                action_tuple = ActionTuple()
-                final_dis_action_values = np.array(dis_action_values)
-                final_cont_action_values = np.array(cont_action_values)
-                action_tuple.add_discrete(final_dis_action_values)
-                action_tuple.add_continuous(final_cont_action_values)
+                else:
+                    for agent_id, i in decision_steps.agent_id_to_index.items():
 
-                env.set_actions(behavior_name, action_tuple)
+                        if terminated[agent_id]:
+                            dis_action_values.append(np.array([0, 0, 0, 0]))
+                            cont_action_values.append([])
+                            continue
+                        # Get the action
+                        q_values, action_index = self.model.get_actions(decision_steps[i].obs,temperature)
+
+
+                        # action_values = action_options[action_index]
+                        dis_action_values.append(action_options[action_index][0])
+                        cont_action_values.append([])
+                        exps[agent_id].add_instance(decision_steps[i].obs, action_index, q_values.copy(),
+                                                    decision_steps[i].reward)
+                    action_tuple = ActionTuple()
+                    final_dis_action_values = np.array(dis_action_values)
+                    final_cont_action_values = np.array(cont_action_values)
+                    action_tuple.add_discrete(final_dis_action_values)
+                    action_tuple.add_continuous(final_cont_action_values)
+                    env.set_actions(behavior_name, action_tuple)
+
                 env.step()
 
+                if all(terminated):
+                    break
             for exp in exps:
                 exp.rewards.pop(0)
                 all_rewards += sum(exp.rewards)
@@ -190,16 +214,26 @@ class Trainer:
         return all_rewards
 
     def fit(self, epochs: int):
+        temp_states, targets = self.memory.create_targets()
+        states = []
+        for state in temp_states:
+            states.append([torch.tensor(obs).to(self.device) for obs in state])
+        
+        targets = torch.tensor(targets).to(self.device)
 
-        states, targets = self.memory.create_targets()
         dataset = StateTargetValuesDataset(states, targets)
         dataloader = DataLoader(dataset, batch_size=64, shuffle=True)
         for epoch in range(epochs):
             for batch in dataloader:
                 # We run the training step with the recorded inputs and new Q value targets.
                 X, y = batch
-                X = [X[0].view((-1, 1, 64, 64)), X[1].view((-1, 1))]
-                y = y.view(-1, self.model.output_shape[1])
+                # X = [X[0].view((-1, 1, 64, 64)), X[1].view((-1, 1))]
+                # y = y.view(-1, self.model.output_shape[1])
+
+                vis_X = X[0].view((-1, 1, 64, 64))
+                nonvis_X = X[1].view((-1, 1))
+                X = (vis_X, nonvis_X)
+
                 y_hat = self.model(X)
                 loss = self.loss_fn(y_hat, y)
                 print("loss", loss)
@@ -210,18 +244,13 @@ class Trainer:
 
     def save_model(self, path):
         torch.onnx.export(
-            WrapperNet(self.model, [2, 2, 2, 2]),
-            ([torch.randn((1,) + self.model.visual_input_shape), torch.ones((1,) + self.model.nonvis_input_shape)],
-             torch.ones((1, 4))),
+            WrapperNet(copy.deepcopy(self.model).cpu()),
+            (
+                torch.randn((1,) + self.model.visual_input_shape),  # Vis observation
+                torch.randn((1,) + self.model.nonvis_input_shape),  # Non vis observation
+            ),
             path,
             opset_version=9,
-            input_names=['obs_0', 'obs_1', 'action_masks'],
-            output_names=['version_number', 'memory_size', 'discrete_actions', 'discrete_action_output_shape',
-                          'deterministic_discrete_actions'],
-            dynamic_axes={
-                'obs_0': {0: 'batch'},
-                'obs_1': {0: 'batch'},
-                'action_masks': {0: 'batch'},
-                'discrete_action_output_shape': {0: 'batch'},
-            }
+            input_names=['vis_obs', 'nonvis_obs'],
+            output_names=['prediction', 'action'],
         )

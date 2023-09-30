@@ -1,10 +1,10 @@
 
-max_trained_epochs = 300
+max_trained_epochs = 500
 
 # Hyperparameters
-exploration_chance_start = 0.99
-exploration_reduce = 0.95 # 0.75
-num_training_examples = 20
+start_temperature = 20
+reduce_temperature = 1/15 # 0.75
+num_training_examples = 100
 discount = 0.95 # devalues future reward
 learning_rate = 0.0005
 

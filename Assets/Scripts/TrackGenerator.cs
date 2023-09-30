@@ -85,7 +85,11 @@ public class TrackGenerator : MonoBehaviour
 
 	void GenerateTrackPiece()
 	{
-		track.Add(trackPieces[Random.Range(0, trackPieces.Length)]);
+		int lastIndex = track.Count - 1;
+		if(track.Count >= 2 && track[lastIndex].angle == 0 && track[lastIndex - 1].angle == 0)
+            track.Add(trackPieces[Random.Range(0, trackPieces.Length - 1) + 1]);
+		else
+            track.Add(trackPieces[Random.Range(0, trackPieces.Length)]);
 
 		PlacePiece(track.Count - 1);
 	}
@@ -119,7 +123,21 @@ public class TrackGenerator : MonoBehaviour
 		currentTrackPiece.go = go;
 		track[index] = currentTrackPiece;
 
-		PlaceCheckpoint(pos);
+		{
+			PlaceCheckpoint(pos);
+			//if(index == 0)
+			//{
+			//	PlaceCheckpoint(pos);
+			//} else
+			//{
+   //             float newAngle = angle + currentTrackPiece.angle;
+   //             float rad = newAngle * Mathf.Deg2Rad;
+
+   //             Vector3 dir = new Vector3(Mathf.Sin(rad), 0, Mathf.Cos(rad)) * trackPieceSize / 2f;
+
+   //             PlaceCheckpoint(pos, dir);
+			//}
+		}
 
 		Track currentTrack = go.GetComponent<Track>();
 		currentTrack.continueAngle = angle + track[index].angle;
@@ -139,9 +157,12 @@ public class TrackGenerator : MonoBehaviour
             GenerateTrackPiece();
 	}
 
-	void PlaceCheckpoint(Vector3 position)
+	void PlaceCheckpoint(Vector3 position, Vector3 offset = new Vector3())
 	{
-		Vector3 newPos = position + Vector3.up * 15;
+
+		Vector3 newPos = position + Vector3.up * 15 + offset;
+	
+
         GameObject checkpoint = Instantiate(checkpointMarker, newPos, Quaternion.identity, checkpointParent.transform);
 
         checkpoints.Add(checkpoint);
