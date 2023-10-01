@@ -55,11 +55,12 @@ class QNetwork(torch.nn.Module):
 
     def get_actions(self, observation, temperature, use_tensor=False):
         """
-        Get the q values, if positive we do the action
-        :param observation:
-        :return q_values:
-        """
 
+        :param observation:
+        :param temperature:
+        :param use_tensor:
+        :return: q_values, actions, action_indices
+        """
         if not use_tensor:
             observation = (
                 torch.from_numpy(observation[0]).to(self.device), torch.from_numpy(observation[1]).to(self.device))
