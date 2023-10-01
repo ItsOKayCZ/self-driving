@@ -9,7 +9,7 @@ from torch.utils.data import Dataset, DataLoader
 
 from WrapperNet import WrapperNet
 from network import QNetwork
-from variables import discount, reward_same_action, learning_rate
+from variables import discount, reward_same_action, learning_rate, num_neurons
 
 
 class Experience:
@@ -27,9 +27,14 @@ class Experience:
         self.predicted_values.append(predicted_values)
 
     def flip(self):
+        """
+        Creates new samples for the dataset by flipping the image and direction of driving
+        :return:
+        """
         new_observations = [(np.flip(vis, 2), nonvis) for vis, nonvis in self.observations]
-        new_actions = [(x[0], x[1] * -1) if x is not None else None for x in self.actions]
-        new_predicted_values = [(np.flip(x[0], 0),np.flip(x[1], 0)) for x in self.predicted_values]
+        new_actions = [(x[0][0], 2 * num_neurons - x[1][0]) if x is not None else None for x in self.actions]
+        # the new action index for steering is essentialy the action value * -1 expressed with the action index
+        new_predicted_values = [(np.flip(x[0], 0), np.flip(x[1], 0)) for x in self.predicted_values]
 
         new_exp = Experience()
         new_exp.observations = new_observations
@@ -39,7 +44,8 @@ class Experience:
         return new_exp
 
     def calculate_targets(self):
-        targets = []
+        targets_speed = []
+        targets_steer = []
         states = []
         for e, observation in enumerate(self.observations):
 
@@ -58,7 +64,7 @@ class Experience:
             # and the value of the next state
             target_matrix_speed = self.calculate_target(self.predicted_values[e][0],
                                                         self.predicted_values[e + 1][0],
-                                                        action_index_speed,reward)
+                                                        action_index_speed, reward)
             target_matrix_steer = self.calculate_target(self.predicted_values[e][1],
                                                         self.predicted_values[e + 1][1],
                                                         action_index_steer, reward)
@@ -66,17 +72,21 @@ class Experience:
             observation = [arr.astype("float32") for arr in observation]
 
             states.append(observation)
-            targets.append((target_matrix_speed,target_matrix_steer))
+            targets_speed.append(target_matrix_speed)
+            targets_steer.append(target_matrix_steer)
 
-        return states, targets
+        return states, (targets_speed,targets_steer)
 
-    def calculate_target(self,q_values,next_q_values,action_index,reward):
+    @staticmethod
+    def calculate_target(q_values, next_q_values, action_index, reward):
         target_matrix = q_values.copy()
 
         # adjust
-        target_matrix[action_index] = reward + max(next_q_values) * discount
-        target_matrix = target_matrix.astype("float32")
+        value = reward + max(next_q_values[0]) * discount
+        target_matrix[0, action_index] = value
+        target_matrix = target_matrix.astype("float32").reshape(-1)
         return target_matrix
+
 
 class ReplayBuffer():
 
@@ -93,12 +103,14 @@ class ReplayBuffer():
 
     def create_targets(self):
         state_dataset = []
-        targets_dataset = []
+        targets_dataset_speed = []
+        targets_dataset_steer = []
         for exp in self.buffer:
             states, targets = exp.calculate_targets()
-            targets_dataset += targets
+            targets_dataset_speed += targets[0]
+            targets_dataset_steer += targets[1]
             state_dataset += states
-        return state_dataset, targets_dataset
+        return state_dataset, (targets_dataset_speed, targets_dataset_steer)
 
     def flip_dataset(self):
         """
@@ -119,17 +131,18 @@ class ReplayBuffer():
 
 class StateTargetValuesDataset(Dataset):
 
-    def __init__(self, states: list, targets: list):
+    def __init__(self, states: list, targets_speed: list, targets_steer: list):
         self.states = states
-        self.targets = targets
-        if len(states) != len(targets):
+        self.targets_speed = targets_speed
+        self.targets_steer = targets_steer
+        if len(states) != len(targets_speed):
             raise ValueError
 
     def __len__(self) -> int:
         return len(self.states)
 
     def __getitem__(self, index: int):
-        return self.states[index], self.targets[index]
+        return self.states[index], (self.targets_speed[index], self.targets_steer[index])
 
 
 class Trainer:
@@ -185,8 +198,10 @@ class Trainer:
 
                 if len(decision_steps) == 0:
                     for agent_id, i in terminal_steps.agent_id_to_index.items():
-                        exps[agent_id].add_instance(terminal_steps[agent_id].obs, None,
-                                                    np.zeros(self.model.output_shape[1]),
+                        exps[agent_id].add_instance(terminal_steps[agent_id].obs,
+                                                    None,
+                                                    (np.zeros(self.model.output_shape_speed),
+                                                     np.zeros(self.model.output_shape_steer)),
                                                     terminal_steps[agent_id].reward)
                         terminated[agent_id] = True
 
@@ -194,15 +209,17 @@ class Trainer:
                     for agent_id, i in decision_steps.agent_id_to_index.items():
 
                         if terminated[agent_id]:
-                            dis_action_values.append(np.array([0, 0, 0, 0]))
-                            cont_action_values.append([])
+                            dis_action_values.append(np.array([]))
+                            cont_action_values.append([0, 0])
                             continue
                         # Get the action
                         q_values, actions, indices = self.model.get_actions(decision_steps[i].obs, temperature)
                         # action_values = action_options[action_index]
                         dis_action_values.append([])
                         cont_action_values.append(actions)
-                        exps[agent_id].add_instance(decision_steps[i].obs, indices, q_values.copy(),
+                        exps[agent_id].add_instance(decision_steps[i].obs,
+                                                    indices,
+                                                    (q_values[0].detach().numpy(), q_values[1].detach().numpy()),
                                                     decision_steps[i].reward)
                     action_tuple = ActionTuple()
                     final_dis_action_values = np.array(dis_action_values)
@@ -225,12 +242,15 @@ class Trainer:
     def fit(self, epochs: int):
         temp_states, targets = self.memory.create_targets()
         states = []
+        targets_speed = targets[0]
+        targets_steer = targets[1]
         for state in temp_states:
             states.append([torch.tensor(obs).to(self.device) for obs in state])
 
-        targets = torch.tensor(targets).to(self.device)
+        targets_speed = torch.tensor(np.array(targets_speed)).to(self.device)
+        targets_steer = torch.tensor(np.array(targets_steer)).to(self.device)
 
-        dataset = StateTargetValuesDataset(states, targets)
+        dataset = StateTargetValuesDataset(states, targets_speed, targets_steer)
         dataloader = DataLoader(dataset, batch_size=64, shuffle=True)
         for epoch in range(epochs):
             for batch in dataloader:

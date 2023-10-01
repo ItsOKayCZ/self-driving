@@ -15,6 +15,8 @@ class QNetwork(torch.nn.Module):
         width = visual_input_shape[2]
         initial_channels = visual_input_shape[0]
 
+        self.output_shape_speed = (1,num_neurons)
+        self.output_shape_steer = (1,num_neurons*2)
         self.device = device
         with torch.device(self.device):
             self.visual_input_shape = visual_input_shape
@@ -31,7 +33,7 @@ class QNetwork(torch.nn.Module):
             self.nonvis_dense = torch.nn.Linear(nonvis_input_shape[0], 8)
             self.dense = torch.nn.Linear(self.final_flat + 8, encoding_size)
             self.output_speed = torch.nn.Linear(encoding_size, num_neurons)
-            self.output_steer = torch.nn.Linear(encoding_size, num_neurons * 2)
+            self.output_steer = torch.nn.Linear(encoding_size, num_neurons * 2 + 1)
 
     def forward(self, observation: Tuple):
         visual_obs, nonvis_obs = observation
@@ -67,9 +69,6 @@ class QNetwork(torch.nn.Module):
             q_values_speed, q_values_steer = q_values_speed.flatten(1), q_values_steer.flatten(1)
             action_index_speed = self.pick_action(temperature, q_values_speed)
             action_index_steer = self.pick_action(temperature, q_values_steer)
-            action_index_speed = action_index_speed.cpu().detach().numpy().flatten()
-            action_index_steer = action_index_steer.cpu().detach().numpy().flatten()
-
         else:
             self.eval()
             with torch.no_grad():
@@ -79,8 +78,8 @@ class QNetwork(torch.nn.Module):
             action_index_speed = self.pick_action(temperature, q_values_speed)
             action_index_steer = self.pick_action(temperature, q_values_steer)
 
-        action_speed = action_index_speed * disc_step_size
-        action_steer = (action_index_steer - 100) * disc_step_size
+        action_speed = action_index_speed[0] * disc_step_size
+        action_steer = (action_index_steer[0] - num_neurons) * disc_step_size
 
         return (q_values_speed, q_values_steer), (action_speed, action_steer), (action_index_speed,action_index_steer)
 
@@ -89,7 +88,7 @@ class QNetwork(torch.nn.Module):
             action_index = torch.argmax(q_values, dim=1, keepdim=True)
         else:
             probs = torch.softmax(q_values / temperature, 1)
-            action_index = random.choices(range(len(probs)), weights=probs[0])
+            action_index = random.choices(range(len(probs[0])), weights=probs[0])
         return action_index
 
     @staticmethod
