@@ -2,14 +2,10 @@ import numpy as np
 import torch
 from typing import Tuple
 from math import floor
+from variables import num_neurons, disc_step_size
 from torch.nn import Parameter
 import random
 
-
-# - action shape: [forward, backward, right, left]
-
-action_options = [np.array([[1, 0, 1, 0]]), np.array([[1, 0, 0, 0]]), np.array([[1, 0, 0, 1]])]
-mirrored_actions = [2,1,0]
 
 class QNetwork(torch.nn.Module):
 
@@ -20,68 +16,81 @@ class QNetwork(torch.nn.Module):
         initial_channels = visual_input_shape[0]
 
         self.device = device
-
         with torch.device(self.device):
-            self.output_shape = (1,len(action_options))
             self.visual_input_shape = visual_input_shape
             self.nonvis_input_shape = nonvis_input_shape
+
             # calculating required size of the dense layer based on the conv layers
             conv_1_hw = self.conv_output_shape((height, width), 5, 1)
             conv_2_hw = self.conv_output_shape(conv_1_hw, 3, 1)
             self.final_flat = conv_2_hw[0] * conv_2_hw[1] * 32
+
             # layers
-            self.conv1 = torch.nn.Conv2d(initial_channels, 16, 5)
-            self.conv2 = torch.nn.Conv2d(16, 32, 3)
+            self.vis_conv1 = torch.nn.Conv2d(initial_channels, 16, 5)
+            self.vis_conv2 = torch.nn.Conv2d(16, 32, 3)
             self.nonvis_dense = torch.nn.Linear(nonvis_input_shape[0], 8)
-            self.dense1 = torch.nn.Linear(self.final_flat + 8, encoding_size)
-            self.dense2 = torch.nn.Linear(encoding_size, self.output_shape[1])
+            self.dense = torch.nn.Linear(self.final_flat + 8, encoding_size)
+            self.output_speed = torch.nn.Linear(encoding_size, num_neurons)
+            self.output_steer = torch.nn.Linear(encoding_size, num_neurons * 2)
 
     def forward(self, observation: Tuple):
         visual_obs, nonvis_obs = observation
         nonvis_obs = nonvis_obs.view((-1, self.nonvis_input_shape[0]))
 
-        conv_1 = torch.relu(self.conv1(visual_obs))
-        conv_2 = torch.relu(self.conv2(conv_1))
+        conv_1 = torch.relu(self.vis_conv1(visual_obs))
+        conv_2 = torch.relu(self.vis_conv2(conv_1))
         nonvis_dense = torch.relu(self.nonvis_dense(nonvis_obs))
-        hidden = conv_2.reshape([-1, self.final_flat])
-        hidden = torch.concat([hidden, nonvis_dense], dim=1)
-        hidden = self.dense1(hidden)
-        hidden = torch.relu(hidden)
-        output = self.dense2(hidden)
-        return output
+        # join outputs
+        dense = conv_2.reshape([-1, self.final_flat])
+        hidden = torch.concat([dense, nonvis_dense], dim=1)
 
-    def get_actions(self, observation, temperature,  use_tensor=False):
+        hidden = self.dense(hidden)
+        hidden = torch.relu(hidden)
+
+        output_speed = self.output_speed(hidden)
+        output_steer = self.output_steer(hidden)
+        return output_speed, output_steer
+
+    def get_actions(self, observation, temperature, use_tensor=False):
         """
         Get the q values, if positive we do the action
         :param observation:
         :return q_values:
         """
-        
+
         if not use_tensor:
-            observation = (torch.from_numpy(observation[0]).to(self.device), torch.from_numpy(observation[1]).to(self.device))
+            observation = (
+                torch.from_numpy(observation[0]).to(self.device), torch.from_numpy(observation[1]).to(self.device))
             self.eval()
             with torch.no_grad():
-                q_values = self.forward(observation)
-            q_values = q_values.flatten(1)
-            if temperature == 0:
-                action_index = torch.argmax(q_values, dim=1, keepdim=True)
-            else:
-                probs = torch.softmax(q_values / temperature,1)
-                action_index = random.choices(range(len(action_options)), weights=probs[0])
-            q_values = q_values.cpu().detach().numpy().flatten()
+                q_values_speed, q_values_steer = self.forward(observation)
+            q_values_speed, q_values_steer = q_values_speed.flatten(1), q_values_steer.flatten(1)
+            action_index_speed = self.pick_action(temperature, q_values_speed)
+            action_index_steer = self.pick_action(temperature, q_values_steer)
+            action_index_speed = action_index_speed.cpu().detach().numpy().flatten()
+            action_index_steer = action_index_steer.cpu().detach().numpy().flatten()
 
         else:
             self.eval()
             with torch.no_grad():
-                q_values = self.forward(observation)
-            q_values = q_values.view((-1, self.output_shape[1]))
-            if temperature == 0:
-                action_index = torch.argmax(q_values, dim=1, keepdim=True)
-            else:
-                probs = torch.softmax(q_values / temperature,1)
-                action_index = random.choices(range(len(action_options)), weights=probs)
+                q_values_speed, q_values_steer = self.forward(observation)
+            q_values_speed, q_values_steer = q_values_speed.view((-1, self.output_shape[1])), q_values_steer.view(
+                (-1, self.output_shape[1]))
+            action_index_speed = self.pick_action(temperature, q_values_speed)
+            action_index_steer = self.pick_action(temperature, q_values_steer)
 
-        return q_values, action_index[0]
+        action_speed = action_index_speed * disc_step_size
+        action_steer = (action_index_steer - 100) * disc_step_size
+
+        return (q_values_speed, q_values_steer), (action_speed, action_steer), (action_index_speed,action_index_steer)
+
+    def pick_action(self, temperature, q_values):
+        if temperature == 0:
+            action_index = torch.argmax(q_values, dim=1, keepdim=True)
+        else:
+            probs = torch.softmax(q_values / temperature, 1)
+            action_index = random.choices(range(len(probs)), weights=probs[0])
+        return action_index
 
     @staticmethod
     def conv_output_shape(

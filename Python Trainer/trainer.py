@@ -8,7 +8,7 @@ from mlagents_envs.environment import ActionTuple
 from torch.utils.data import Dataset, DataLoader
 
 from WrapperNet import WrapperNet
-from network import QNetwork, action_options, mirrored_actions
+from network import QNetwork
 from variables import discount, reward_same_action, learning_rate
 
 
@@ -28,8 +28,8 @@ class Experience:
 
     def flip(self):
         new_observations = [(np.flip(vis, 2), nonvis) for vis, nonvis in self.observations]
-        new_actions = [mirrored_actions[x] if x is not None else None for x in self.actions]
-        new_predicted_values = [np.flip(x, 0) for x in self.predicted_values]
+        new_actions = [(x[0], x[1] * -1) if x is not None else None for x in self.actions]
+        new_predicted_values = [(np.flip(x[0], 0),np.flip(x[1], 0)) for x in self.predicted_values]
 
         new_exp = Experience()
         new_exp.observations = new_observations
@@ -46,26 +46,37 @@ class Experience:
             if self.actions[e] is None:
                 break
 
-            action_index = self.actions[e]
+            action_index_speed = self.actions[e][0]
+            action_index_steer = self.actions[e][1]
             reward = self.rewards[e]
 
             if e != 0:
-                if self.actions[e] == self.actions[e - 1]:
+                if self.actions[e][1] == self.actions[e - 1][1]:
                     reward += reward_same_action
 
             # we take the matrix of predicted values and for the actions we had taken adjust the value by the reward
             # and the value of the next state
-            target_matrix = self.predicted_values[e].copy()
-
+            target_matrix_speed = self.calculate_target(self.predicted_values[e][0],
+                                                        self.predicted_values[e + 1][0],
+                                                        action_index_speed,reward)
+            target_matrix_steer = self.calculate_target(self.predicted_values[e][1],
+                                                        self.predicted_values[e + 1][1],
+                                                        action_index_steer, reward)
             # adjust
-            target_matrix[action_index] = reward + max(self.predicted_values[e + 1]) * discount
             observation = [arr.astype("float32") for arr in observation]
-            target_matrix = target_matrix.astype("float32")
+
             states.append(observation)
-            targets.append(target_matrix)
+            targets.append((target_matrix_speed,target_matrix_steer))
 
         return states, targets
 
+    def calculate_target(self,q_values,next_q_values,action_index,reward):
+        target_matrix = q_values.copy()
+
+        # adjust
+        target_matrix[action_index] = reward + max(next_q_values) * discount
+        target_matrix = target_matrix.astype("float32")
+        return target_matrix
 
 class ReplayBuffer():
 
@@ -187,13 +198,11 @@ class Trainer:
                             cont_action_values.append([])
                             continue
                         # Get the action
-                        q_values, action_index = self.model.get_actions(decision_steps[i].obs,temperature)
-
-
+                        q_values, actions, indices = self.model.get_actions(decision_steps[i].obs, temperature)
                         # action_values = action_options[action_index]
-                        dis_action_values.append(action_options[action_index][0])
-                        cont_action_values.append([])
-                        exps[agent_id].add_instance(decision_steps[i].obs, action_index, q_values.copy(),
+                        dis_action_values.append([])
+                        cont_action_values.append(actions)
+                        exps[agent_id].add_instance(decision_steps[i].obs, indices, q_values.copy(),
                                                     decision_steps[i].reward)
                     action_tuple = ActionTuple()
                     final_dis_action_values = np.array(dis_action_values)
@@ -218,7 +227,7 @@ class Trainer:
         states = []
         for state in temp_states:
             states.append([torch.tensor(obs).to(self.device) for obs in state])
-        
+
         targets = torch.tensor(targets).to(self.device)
 
         dataset = StateTargetValuesDataset(states, targets)
@@ -235,7 +244,7 @@ class Trainer:
                 X = (vis_X, nonvis_X)
 
                 y_hat = self.model(X)
-                loss = self.loss_fn(y_hat, y)
+                loss = self.loss_fn(y_hat[0], y[0]) + self.loss_fn(y_hat[1], y[1])
                 print("loss", loss)
                 # Backprop
                 self.optim.zero_grad()
