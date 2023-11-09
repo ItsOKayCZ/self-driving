@@ -62,8 +62,10 @@ class QNetwork(torch.nn.Module):
         :return: q_values, actions, action_indices
         """
         if not use_tensor:
+
             observation = (
-                torch.from_numpy(observation[0]).to(self.device), torch.from_numpy(observation[1]).to(self.device))
+                torch.from_numpy(observation[0].reshape(-1,64,64)).to(self.device), torch.from_numpy(observation[1]).to(self.device))
+
             self.eval()
             with torch.no_grad():
                 q_values_speed, q_values_steer = self.forward(observation)
@@ -73,6 +75,8 @@ class QNetwork(torch.nn.Module):
         else:
             self.eval()
             with torch.no_grad():
+                observation[0] = observation[0].reshape(-1,64,64)
+
                 q_values_speed, q_values_steer = self.forward(observation)
             q_values_speed, q_values_steer = q_values_speed.view((-1, self.output_shape[1])), q_values_steer.view(
                 (-1, self.output_shape[1]))
