@@ -75,11 +75,13 @@ class QNetwork(torch.nn.Module):
         else:
             self.eval()
             with torch.no_grad():
-                observation[0] = observation[0].reshape(-1,64,64)
+                observation_input = [
+                    observation[0].reshape(-1, 64, 64),
+                    observation[1]
+                ]
 
-                q_values_speed, q_values_steer = self.forward(observation)
-            q_values_speed, q_values_steer = q_values_speed.view((-1, self.output_shape[1])), q_values_steer.view(
-                (-1, self.output_shape[1]))
+                q_values_speed, q_values_steer = self.forward(observation_input)
+            q_values_speed, q_values_steer = q_values_speed.flatten(1), q_values_steer.flatten(1)
             action_index_speed = self.pick_action(temperature, q_values_speed)
             action_index_steer = self.pick_action(temperature, q_values_steer)
 

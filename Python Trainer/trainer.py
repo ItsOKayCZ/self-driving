@@ -219,7 +219,7 @@ class Trainer:
                         cont_action_values.append(actions)
                         exps[agent_id].add_instance(decision_steps[i].obs,
                                                     indices,
-                                                    (q_values[0].detach().numpy(), q_values[1].detach().numpy()),
+                                                    (q_values[0].detach().cpu().numpy(), q_values[1].detach().cpu().numpy()),
                                                     decision_steps[i].reward)
                     action_tuple = ActionTuple()
                     final_dis_action_values = np.array(dis_action_values)
