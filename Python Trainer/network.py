@@ -79,8 +79,8 @@ class QNetwork(torch.nn.Module):
                     observation[0].reshape(-1, 64, 64),
                     observation[1]
                 ]
-
                 q_values_speed, q_values_steer = self.forward(observation_input)
+
             q_values_speed, q_values_steer = q_values_speed.flatten(1), q_values_steer.flatten(1)
             action_index_speed = self.pick_action(temperature, q_values_speed)
             action_index_steer = self.pick_action(temperature, q_values_steer)
@@ -91,8 +91,9 @@ class QNetwork(torch.nn.Module):
         return (q_values_speed, q_values_steer), (action_speed, action_steer), (action_index_speed,action_index_steer)
 
     def pick_action(self, temperature, q_values):
-        if temperature == 0:
+        if temperature == 0.0:
             action_index = torch.argmax(q_values, dim=1, keepdim=True)
+            action_index = action_index.tolist()[0]
         else:
             probs = torch.softmax(q_values / temperature, 1)
             action_index = random.choices(range(len(probs[0])), weights=probs[0])
