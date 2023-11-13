@@ -6,6 +6,7 @@ from variables import num_neurons, disc_step_size
 from torch.nn import Parameter
 import random
 
+from matplotlib import pyplot as plt
 
 class QNetwork(torch.nn.Module):
 
@@ -53,25 +54,26 @@ class QNetwork(torch.nn.Module):
         output_steer = self.output_steer(hidden)
         return output_speed, output_steer
 
-    def get_actions(self, observation, temperature, use_tensor=False):
+    def get_actions(self, observation, temperature, use_tensor=False, toPlot=False):
         """
 
+        :param toPlot:
         :param observation:
         :param temperature:
         :param use_tensor:
         :return: q_values, actions, action_indices
         """
         if not use_tensor:
-
             observation = (
-                torch.from_numpy(observation[0].reshape(-1,64,64)).to(self.device), torch.from_numpy(observation[1]).to(self.device))
+                torch.from_numpy(observation[0].reshape(-1,64,64)).to(self.device),
+                torch.from_numpy(observation[1]).to(self.device))
 
             self.eval()
             with torch.no_grad():
                 q_values_speed, q_values_steer = self.forward(observation)
             q_values_speed, q_values_steer = q_values_speed.flatten(1), q_values_steer.flatten(1)
-            action_index_speed = self.pick_action(temperature, q_values_speed)
-            action_index_steer = self.pick_action(temperature, q_values_steer)
+            action_index_speed = self.pick_action(temperature, q_values_speed,toPlot)
+            action_index_steer = self.pick_action(temperature, q_values_steer,toPlot)
         else:
             self.eval()
             with torch.no_grad():
@@ -86,17 +88,23 @@ class QNetwork(torch.nn.Module):
             action_index_steer = self.pick_action(temperature, q_values_steer)
 
         action_speed = action_index_speed[0] * disc_step_size
-        action_steer = (action_index_steer[0] - num_neurons) * disc_step_size
+        action_steer = (action_index_steer[0] - (num_neurons + 1)) * disc_step_size
 
         return (q_values_speed, q_values_steer), (action_speed, action_steer), (action_index_speed,action_index_steer)
 
-    def pick_action(self, temperature, q_values):
+    def pick_action(self, temperature, q_values,toPlot=False):
         if temperature == 0.0:
             action_index = torch.argmax(q_values, dim=1, keepdim=True)
             action_index = action_index.tolist()[0]
         else:
             probs = torch.softmax(q_values / temperature, 1)
+            if toPlot:
+                plt.bar(range(1,len(probs[0])+1),probs[0])
+                plt.show()
+                plt.bar(range(1, len(q_values[0]) + 1), q_values[0])
+                plt.show()
             action_index = random.choices(range(len(probs[0])), weights=probs[0])
+
         return action_index
 
     @staticmethod

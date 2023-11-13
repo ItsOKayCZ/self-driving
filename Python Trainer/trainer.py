@@ -182,7 +182,8 @@ class Trainer:
         all_rewards = 0
         # Read and store the Behavior Specs of the Environment
         num_exp = 0
-
+        plotting = True; # turn on plotting of q values and probs
+        toPlot = False
         while not self.memory.is_full():
             num_exp += 1 * self.num_agents
             exps = [Experience() for _ in range(self.num_agents)]
@@ -213,10 +214,19 @@ class Trainer:
                             cont_action_values.append([0, 0])
                             continue
                         # Get the action
-                        q_values, actions, indices = self.model.get_actions(decision_steps[i].obs, temperature)
+
+                        q_values, actions, indices = self.model.get_actions(decision_steps[i].obs, temperature,toPlot=toPlot)
                         # action_values = action_options[action_index]
+
                         dis_action_values.append([])
                         cont_action_values.append(actions)
+
+                        ######
+                        if len(exps[0].actions) and plotting == 40:
+                            toPlot = True
+                        else:
+                            toPlot = False
+                        ########
                         exps[agent_id].add_instance(decision_steps[i].obs,
                                                     indices,
                                                     (q_values[0].detach().cpu().numpy(), q_values[1].detach().cpu().numpy()),
