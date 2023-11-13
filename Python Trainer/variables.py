@@ -4,7 +4,7 @@ max_trained_epochs = 500
 # Hyperparameters
 start_temperature = 20
 reduce_temperature = 1/10 # 0.75
-num_training_examples = 100
+num_training_examples = 300 # 300
 discount = 0.95 # devalues future reward
 learning_rate = 0.0005
 
