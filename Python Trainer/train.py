@@ -49,7 +49,7 @@ if __name__ == "__main__":
 
     results = []
     try:
-        qnet = QNetwork(visual_input_shape=(1, 64, 64), nonvis_input_shape=(1,), encoding_size=126, device=device)
+        qnet = QNetwork(visual_input_shape=(1, 64, 64), nonvis_input_shape=(1,), encoding_size=258, device=device)
         trainer = Trainer(model=qnet, buffer_size=num_training_examples, device=device, num_agents=NUM_AREAS)
 
         if SAVE_MODEL:
