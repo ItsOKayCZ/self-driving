@@ -68,7 +68,7 @@ if __name__ == "__main__":
             temperature = relu(temperature-temperature_red)
 
             if SAVE_MODEL:
-                trainer.save_model(f'{folder_name}/model-epoch-{epoch}.onnx')
+                trainer.save_model(f'{folder_name}/model-epoch-{epoch}-reward-{reward}.onnx')
 
             print(f"reward earned: {reward}")
 
