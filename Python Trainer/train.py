@@ -10,8 +10,8 @@ from variables import (MAX_TRAINED_EPOCHS,
                        NUM_TRAINING_EXAMPLES,
                        IMAGE_SHAPE,
                        ENCODING_SIZE,
-                       NUM_NEURONS,
-                       DISC_STEP_SIZE
+                       LEARNING_RATE,
+                       NUM_EVALUATION_EXAMPLES
                        )
 import argparse
 import json
@@ -60,7 +60,7 @@ if __name__ == "__main__":
     results = []
     try:
         qnet = QNetwork(visual_input_shape=IMAGE_SHAPE, nonvis_input_shape=(1,), encoding_size=ENCODING_SIZE, device=device)
-        trainer = Trainer(model=qnet, buffer_size=NUM_TRAINING_EXAMPLES, device=device, num_agents=NUM_AREAS)
+        trainer = Trainer(model=qnet, buffer_size=NUM_TRAINING_EXAMPLES, device=device, learning_rate=LEARNING_RATE,num_evaluations=NUM_EVALUATION_EXAMPLES,num_agents=NUM_AREAS)
 
         if SAVE_MODEL:
             folder_name = f'./models/{datetime.datetime.now().strftime("%y-%m-%d %H%M%S")}'
