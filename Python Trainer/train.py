@@ -4,7 +4,15 @@ from network import QNetwork
 from trainer import Trainer
 import os
 import datetime
-from variables import max_trained_epochs, start_temperature, reduce_temperature, num_training_examples
+from variables import (MAX_TRAINED_EPOCHS,
+                       START_TEMPERATURE,
+                       REDUCE_TEMPERATURE,
+                       NUM_TRAINING_EXAMPLES,
+                       IMAGE_SHAPE,
+                       ENCODING_SIZE,
+                       NUM_NEURONS,
+                       DISC_STEP_SIZE
+                       )
 import argparse
 import json
 import torch
@@ -20,8 +28,10 @@ SAVE_MODEL = args.save_model
 ENV_PATH = args.env
 NO_DISPLAY = args.no_display
 
+
 def relu(x):
-	return max(0.0, x)
+    return max(0.0, x)
+
 
 if __name__ == "__main__":
     # set up the environment
@@ -43,14 +53,15 @@ if __name__ == "__main__":
     num_actions = spec.action_spec
     print(num_actions)
 
-    num_epochs = max_trained_epochs
-    temperature = start_temperature
-    temperature_red = reduce_temperature
+    num_epochs = MAX_TRAINED_EPOCHS
+    temperature = START_TEMPERATURE
+    temperature_red = REDUCE_TEMPERATURE
 
     results = []
     try:
-        qnet = QNetwork(visual_input_shape=(1, 64, 64), nonvis_input_shape=(1,), encoding_size=258, device=device)
-        trainer = Trainer(model=qnet, buffer_size=num_training_examples, device=device, num_agents=NUM_AREAS)
+        qnet = QNetwork(visual_input_shape=IMAGE_SHAPE, nonvis_input_shape=(1,), encoding_size=ENCODING_SIZE,
+                        num_neurons=NUM_NEURONS, disc_step_size=DISC_STEP_SIZE,device=device)
+        trainer = Trainer(model=qnet, buffer_size=NUM_TRAINING_EXAMPLES, device=device, num_agents=NUM_AREAS)
 
         if SAVE_MODEL:
             folder_name = f'./models/{datetime.datetime.now().strftime("%y-%m-%d %H%M%S")}'
@@ -63,9 +74,9 @@ if __name__ == "__main__":
             print(f"epoch: {epoch}, temperature:{temperature}")
             reward = trainer.train(env, temperature)
             reward /= NUM_AREAS
-            reward /= num_training_examples
+            reward /= NUM_TRAINING_EXAMPLES
             results.append(reward)
-            temperature = relu(temperature-temperature_red)
+            temperature = relu(temperature - temperature_red)
 
             if SAVE_MODEL:
                 trainer.save_model(f'{folder_name}/model-epoch-{epoch}-reward-{reward}.onnx')

@@ -9,7 +9,7 @@ from torch.utils.data import Dataset, DataLoader
 
 from WrapperNet import WrapperNet
 from network import QNetwork
-from variables import discount, reward_same_action, learning_rate, num_neurons
+from variables import DISCOUNT, REWARD_SAME_ACTION, LEARNING_RATE, NUM_NEURONS
 
 
 class Experience:
@@ -32,7 +32,7 @@ class Experience:
         :return:
         """
         new_observations = [(np.flip(vis, 2), nonvis) for vis, nonvis in self.observations]
-        new_actions = [(x[0][0], 2 * num_neurons - x[1][0]) if x is not None else None for x in self.actions]
+        new_actions = [(x[0][0], 2 * NUM_NEURONS - x[1][0]) if x is not None else None for x in self.actions]
         # the new action index for steering is essentialy the action value * -1 expressed with the action index
         new_predicted_values = [(np.flip(x[0], 0), np.flip(x[1], 0)) for x in self.predicted_values]
 
@@ -58,7 +58,7 @@ class Experience:
 
             if e != 0:
                 if self.actions[e][1] == self.actions[e - 1][1]:
-                    reward += reward_same_action
+                    reward += REWARD_SAME_ACTION
 
             # we take the matrix of predicted values and for the actions we had taken adjust the value by the reward
             # and the value of the next state
@@ -82,7 +82,7 @@ class Experience:
         target_matrix = q_values.copy()
 
         # adjust
-        value = reward + max(next_q_values[0]) * discount
+        value = reward + max(next_q_values[0]) * DISCOUNT
         target_matrix[0, action_index] = value
         target_matrix = target_matrix.astype("float32").reshape(-1)
         return target_matrix
@@ -159,7 +159,7 @@ class Trainer:
         self.memory = ReplayBuffer(buffer_size)
         self.model = model
         self.loss_fn = torch.nn.MSELoss()
-        self.optim = torch.optim.Adam(self.model.parameters(), lr=learning_rate, weight_decay=1e-7)
+        self.optim = torch.optim.Adam(self.model.parameters(), lr=LEARNING_RATE, weight_decay=1e-7)
 
         self.num_agents = num_agents
 

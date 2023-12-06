@@ -1,14 +1,15 @@
-import numpy as np
 import torch
 from typing import Tuple
 from math import floor
-from variables import num_neurons, disc_step_size
-from torch.nn import Parameter
+from variables import NUM_NEURONS, DISC_STEP_SIZE
 import random
 
 from matplotlib import pyplot as plt
 
+
 class QNetwork(torch.nn.Module):
+    Num_neurons = NUM_NEURONS
+    Disc_step_size = DISC_STEP_SIZE
 
     def __init__(self, visual_input_shape, nonvis_input_shape, encoding_size, device):
         super(QNetwork, self).__init__()
@@ -16,8 +17,8 @@ class QNetwork(torch.nn.Module):
         width = visual_input_shape[2]
         initial_channels = visual_input_shape[0]
 
-        self.output_shape_speed = (1,num_neurons)
-        self.output_shape_steer = (1,num_neurons*2)
+        self.output_shape_speed = (1, QNetwork.num_neurons)
+        self.output_shape_steer = (1, QNetwork.num_neurons * 2)
         self.device = device
         with torch.device(self.device):
             self.visual_input_shape = visual_input_shape
@@ -33,8 +34,8 @@ class QNetwork(torch.nn.Module):
             self.vis_conv2 = torch.nn.Conv2d(16, 32, 3)
             self.nonvis_dense = torch.nn.Linear(nonvis_input_shape[0], 8)
             self.dense = torch.nn.Linear(self.final_flat + 8, encoding_size)
-            self.output_speed = torch.nn.Linear(encoding_size, num_neurons)
-            self.output_steer = torch.nn.Linear(encoding_size, num_neurons * 2 + 1)
+            self.output_speed = torch.nn.Linear(encoding_size, QNetwork.num_neurons)
+            self.output_steer = torch.nn.Linear(encoding_size, QNetwork.num_neurons * 2 + 1)
 
     def forward(self, observation: Tuple):
         visual_obs, nonvis_obs = observation
@@ -65,15 +66,15 @@ class QNetwork(torch.nn.Module):
         """
         if not use_tensor:
             observation = (
-                torch.from_numpy(observation[0].reshape(-1,64,64)).to(self.device),
+                torch.from_numpy(observation[0].reshape(-1, 64, 64)).to(self.device),
                 torch.from_numpy(observation[1]).to(self.device))
 
             self.eval()
             with torch.no_grad():
                 q_values_speed, q_values_steer = self.forward(observation)
             q_values_speed, q_values_steer = q_values_speed.flatten(1), q_values_steer.flatten(1)
-            action_index_speed = self.pick_action(temperature, q_values_speed,toPlot)
-            action_index_steer = self.pick_action(temperature, q_values_steer,toPlot)
+            action_index_speed = self.pick_action(temperature, q_values_speed, toPlot)
+            action_index_steer = self.pick_action(temperature, q_values_steer, toPlot)
         else:
             self.eval()
             with torch.no_grad():
@@ -87,22 +88,23 @@ class QNetwork(torch.nn.Module):
             action_index_speed = self.pick_action(temperature, q_values_speed)
             action_index_steer = self.pick_action(temperature, q_values_steer)
 
-        action_speed = action_index_speed[0] * disc_step_size /(3/2) # so its a bit slower
-        action_steer = (action_index_steer[0] - num_neurons) * disc_step_size
+        action_speed = action_index_speed[0] * QNetwork.disc_step_size / (3 / 2)  # so its a bit slower
+        action_steer = (action_index_steer[0] - QNetwork.num_neurons) * QNetwork.disc_step_size
 
-        return (q_values_speed, q_values_steer), (action_speed, action_steer), (action_index_speed,action_index_steer)
+        return (q_values_speed, q_values_steer), (action_speed, action_steer), (action_index_speed, action_index_steer)
 
-    def pick_action(self, temperature, q_values,toPlot=False):
+    @staticmethod
+    def pick_action(self, temperature, q_values, toPlot=False):
         if temperature == 0.0:
             action_index = torch.argmax(q_values, dim=1, keepdim=True)
             action_index = action_index.tolist()[0]
         else:
             probs = torch.softmax(q_values / temperature, 1)
-            if len(probs[0]) == num_neurons:
-                probs[0][1] +=(temperature/10)
-                return [len(probs[0])-1] # always goes forward
+            if len(probs[0]) == QNetwork.num_neurons:
+                probs[0][1] += (temperature / 10)
+                return [len(probs[0]) - 1]  # always goes forward
             if toPlot:
-                plt.bar(range(1,len(probs[0])+1),probs[0])
+                plt.bar(range(1, len(probs[0]) + 1), probs[0])
                 plt.show()
                 plt.bar(range(1, len(q_values[0]) + 1), q_values[0])
                 plt.show()
