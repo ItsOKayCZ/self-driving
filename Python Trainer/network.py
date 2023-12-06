@@ -11,14 +11,14 @@ class QNetwork(torch.nn.Module):
     Num_neurons = NUM_NEURONS
     Disc_step_size = DISC_STEP_SIZE
 
-    def __init__(self, visual_input_shape, nonvis_input_shape, encoding_size, device):
+    def __init__(self, visual_input_shape: tuple, nonvis_input_shape: tuple, encoding_size: int, device):
         super(QNetwork, self).__init__()
         height = visual_input_shape[1]
         width = visual_input_shape[2]
         initial_channels = visual_input_shape[0]
 
-        self.output_shape_speed = (1, QNetwork.num_neurons)
-        self.output_shape_steer = (1, QNetwork.num_neurons * 2)
+        self.output_shape_speed = (1, QNetwork.Num_neurons)
+        self.output_shape_steer = (1, QNetwork.Num_neurons * 2)
         self.device = device
         with torch.device(self.device):
             self.visual_input_shape = visual_input_shape
@@ -34,10 +34,10 @@ class QNetwork(torch.nn.Module):
             self.vis_conv2 = torch.nn.Conv2d(16, 32, 3)
             self.nonvis_dense = torch.nn.Linear(nonvis_input_shape[0], 8)
             self.dense = torch.nn.Linear(self.final_flat + 8, encoding_size)
-            self.output_speed = torch.nn.Linear(encoding_size, QNetwork.num_neurons)
-            self.output_steer = torch.nn.Linear(encoding_size, QNetwork.num_neurons * 2 + 1)
+            self.output_speed = torch.nn.Linear(encoding_size, QNetwork.Num_neurons)
+            self.output_steer = torch.nn.Linear(encoding_size, QNetwork.Num_neurons * 2 + 1)
 
-    def forward(self, observation: Tuple):
+    def forward(self, observation: tuple) -> tuple:
         visual_obs, nonvis_obs = observation
         nonvis_obs = nonvis_obs.view((-1, self.nonvis_input_shape[0]))
 
@@ -55,7 +55,7 @@ class QNetwork(torch.nn.Module):
         output_steer = self.output_steer(hidden)
         return output_speed, output_steer
 
-    def get_actions(self, observation, temperature, use_tensor=False, toPlot=False):
+    def get_actions(self, observation: tuple, temperature: float, use_tensor=False, toPlot=False) -> tuple:
         """
 
         :param toPlot:
@@ -88,19 +88,19 @@ class QNetwork(torch.nn.Module):
             action_index_speed = self.pick_action(temperature, q_values_speed)
             action_index_steer = self.pick_action(temperature, q_values_steer)
 
-        action_speed = action_index_speed[0] * QNetwork.disc_step_size / (3 / 2)  # so its a bit slower
-        action_steer = (action_index_steer[0] - QNetwork.num_neurons) * QNetwork.disc_step_size
+        action_speed = action_index_speed[0] * QNetwork.Disc_step_size / (3 / 2)  # so its a bit slower
+        action_steer = (action_index_steer[0] - QNetwork.Num_neurons) * QNetwork.Disc_step_size
 
         return (q_values_speed, q_values_steer), (action_speed, action_steer), (action_index_speed, action_index_steer)
 
     @staticmethod
-    def pick_action(self, temperature, q_values, toPlot=False):
+    def pick_action(temperature, q_values, toPlot=False):
         if temperature == 0.0:
             action_index = torch.argmax(q_values, dim=1, keepdim=True)
             action_index = action_index.tolist()[0]
         else:
             probs = torch.softmax(q_values / temperature, 1)
-            if len(probs[0]) == QNetwork.num_neurons:
+            if len(probs[0]) == QNetwork.Num_neurons:
                 probs[0][1] += (temperature / 10)
                 return [len(probs[0]) - 1]  # always goes forward
             if toPlot:

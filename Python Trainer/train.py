@@ -59,8 +59,7 @@ if __name__ == "__main__":
 
     results = []
     try:
-        qnet = QNetwork(visual_input_shape=IMAGE_SHAPE, nonvis_input_shape=(1,), encoding_size=ENCODING_SIZE,
-                        num_neurons=NUM_NEURONS, disc_step_size=DISC_STEP_SIZE,device=device)
+        qnet = QNetwork(visual_input_shape=IMAGE_SHAPE, nonvis_input_shape=(1,), encoding_size=ENCODING_SIZE, device=device)
         trainer = Trainer(model=qnet, buffer_size=NUM_TRAINING_EXAMPLES, device=device, num_agents=NUM_AREAS)
 
         if SAVE_MODEL:
