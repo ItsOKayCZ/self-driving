@@ -240,7 +240,7 @@ class Trainer:
                 torch.randn((1,) + self.model.nonvis_input_shape),  # Non vis observation
             ),
             path,
-            opset_version=9,
+            opset_version=11,
             input_names=['vis_obs', 'nonvis_obs'],
             output_names=['prediction', 'action'],
         )

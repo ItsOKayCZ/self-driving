@@ -85,8 +85,8 @@ class QNetwork(torch.nn.Module):
                 q_values_speed, q_values_steer = self.forward(observation_input)
 
             q_values_speed, q_values_steer = q_values_speed.flatten(1), q_values_steer.flatten(1)
-            action_index_speed = self.pick_action(temperature, q_values_speed)
-            action_index_steer = self.pick_action(temperature, q_values_steer)
+            action_index_speed = self.pick_action(temperature, q_values_speed, use_tensor=use_tensor)
+            action_index_steer = self.pick_action(temperature, q_values_steer, use_tensor=use_tensor)
 
         action_speed = action_index_speed[0] * QNetwork.Disc_step_size / (3 / 2)  # so its a bit slower
         action_steer = (action_index_steer[0] - QNetwork.Num_neurons) * QNetwork.Disc_step_size
@@ -94,10 +94,12 @@ class QNetwork(torch.nn.Module):
         return (q_values_speed, q_values_steer), (action_speed, action_steer), (action_index_speed, action_index_steer)
 
     @staticmethod
-    def pick_action(temperature, q_values, toPlot=False):
+    def pick_action(temperature, q_values, toPlot=False, use_tensor=False):
         if temperature == 0.0:
-            action_index = torch.argmax(q_values, dim=1, keepdim=True)
-            action_index = action_index.tolist()[0]
+            action_index = torch.argmax(q_values, dim=1, keepdim=True)[0]
+            if not use_tensor:
+                action_index = action_index.tolist()
+                # action_index = action_index.tolist()[0]
         else:
             probs = torch.softmax(q_values / temperature, 1)
             if len(probs[0]) == QNetwork.Num_neurons:
