@@ -1,0 +1,3 @@
+[submodule "aws-ros2"]
+	path = aws-ros2
+	url = git@gitlab.fit.cvut.cz:krupaold/aws-ros2.git
