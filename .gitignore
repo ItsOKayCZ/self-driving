@@ -76,5 +76,5 @@ Python Trainer/linux/selfDriving_Data/ML-Agents/Timers/Main_timers.json
 Assets/ML-Agents/Timers/Main_timers.json
 Assets/ML-Agents/Timers/Main_timers.json.meta
 Python Trainer/models/[0-9]*/
-*.pyc
+__pycache__/
 .vscode/

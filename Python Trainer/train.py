@@ -1,5 +1,6 @@
 import matplotlib.pyplot as plt
 from mlagents_envs.environment import UnityEnvironment
+from mlagents_envs.side_channel.engine_configuration_channel import EngineConfigurationChannel
 from network import QNetwork
 from trainer import Trainer
 import os
@@ -20,14 +21,17 @@ import torch
 parser = argparse.ArgumentParser()
 parser.add_argument('-n', '--num-areas', type=int, default=1)
 parser.add_argument('-s', '--save-model', action='store_true')
-parser.add_argument('-e', '--env', default='./env/Self driving.exe')
+parser.add_argument('-e', '--env', default='./linux/selfDriving.x86_64')
 parser.add_argument('-D', '--no-display', action='store_true')
+parser.add_argument('-t', '--time-scale', type=float, default=1.0)
 args = parser.parse_args()
 NUM_AREAS = args.num_areas
 SAVE_MODEL = args.save_model
 ENV_PATH = args.env
 NO_DISPLAY = args.no_display
+TIME_SCALE = args.time_scale
 
+engine_channel = EngineConfigurationChannel()
 
 def relu(x):
     return max(0.0, x)
@@ -37,7 +41,8 @@ if __name__ == "__main__":
     # set up the environment
     # env_location = './env/Self driving.exe'
     env_location = ENV_PATH
-    env = UnityEnvironment(file_name=env_location, num_areas=NUM_AREAS)
+    env = UnityEnvironment(file_name=env_location, num_areas=NUM_AREAS, side_channels=[engine_channel])
+    engine_channel.set_configuration_parameters(time_scale=TIME_SCALE)
     env.reset()
 
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
