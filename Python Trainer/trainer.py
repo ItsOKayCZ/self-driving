@@ -6,10 +6,10 @@ import torch
 import torch.onnx
 from mlagents_envs.environment import ActionTuple
 from torch.utils.data import Dataset, DataLoader
+from variables import IMAGE_SHAPE
 
 from WrapperNet import WrapperNet
 from network import QNetwork
-from variables import LEARNING_RATE
 from Buffer import ReplayBuffer, Experience, StateTargetValuesDataset
 
 
@@ -152,7 +152,7 @@ class Trainer:
                 # X = [X[0].view((-1, 1, 64, 64)), X[1].view((-1, 1))]
                 # y = y.view(-1, self.model.output_shape[1])
 
-                vis_X = X[0].view((-1, 1, 64, 64))
+                vis_X = X[0].view((-1,IMAGE_SHAPE[0] , IMAGE_SHAPE[1],IMAGE_SHAPE[2] ))
                 nonvis_X = X[1].view((-1, 1))
                 X = (vis_X, nonvis_X)
 
@@ -192,6 +192,8 @@ class Trainer:
         while not all(terminated):
 
             env.reset() # for new tracks
+
+            print(f"{next_index_to_fill * 100 / self.num_evaluations}%")
             while True:
                 decision_steps, terminal_steps = env.get_steps(behavior_name)
                 order = (0, 3, 1, 2)
@@ -203,9 +205,9 @@ class Trainer:
 
                 if len(decision_steps) == 0:
                     for agent_id, i in terminal_steps.agent_id_to_index.items():
-
-                        scores_list[agent_id + next_index_to_fill] += terminal_steps[agent_id].reward
-                        terminated[agent_id+next_index_to_fill] = True
+                        if agent_id + next_index_to_fill < len(scores_list):
+                            scores_list[agent_id + next_index_to_fill] += terminal_steps[agent_id].reward
+                            terminated[agent_id+next_index_to_fill] = True
 
                 else:
 
