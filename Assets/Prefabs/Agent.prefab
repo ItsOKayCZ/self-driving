@@ -10864,9 +10864,9 @@ Rigidbody:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 6282186036658918038}
   serializedVersion: 4
-  m_Mass: 500
+  m_Mass: 200
   m_Drag: 0
-  m_AngularDrag: 0.05
+  m_AngularDrag: 1
   m_CenterOfMass: {x: 0, y: 0, z: 0}
   m_InertiaTensor: {x: 1, y: 1, z: 1}
   m_InertiaRotation: {x: 0, y: 0, z: 0, w: 1}
@@ -10898,7 +10898,7 @@ MonoBehaviour:
   agentParameters:
     maxStep: 0
   hasUpgradedFromAgentParameters: 1
-  MaxStep: 1000
+  MaxStep: 5000
   parentCheckpoint: {fileID: 0}
   currentCheckpoint: 0
   carController: {fileID: 6282186034757043643}
@@ -11015,8 +11015,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   m_Camera: {fileID: 6282186036672718647}
   m_SensorName: CameraSensor
-  m_Width: 64
-  m_Height: 64
+  m_Width: 160
+  m_Height: 80
   m_Grayscale: 1
   m_ObservationType: 0
   m_RuntimeCameraEnable: 0
@@ -11059,8 +11059,8 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 6282186036672718645}
   serializedVersion: 2
-  m_LocalRotation: {x: 0.50572914, y: -0, z: -0, w: 0.8626924}
-  m_LocalPosition: {x: 0, y: 5.31, z: 2.93}
+  m_LocalRotation: {x: 0.1517784, y: 0, z: 0, w: 0.9884146}
+  m_LocalPosition: {x: 0, y: 1.25, z: 2.36}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -11076,7 +11076,7 @@ Camera:
   m_Enabled: 1
   serializedVersion: 2
   m_ClearFlags: 2
-  m_BackGroundColor: {r: 1, g: 1, b: 1, a: 0}
+  m_BackGroundColor: {r: 1, g: 1, b: 1, a: 1}
   m_projectionMatrixMode: 1
   m_GateFitMode: 2
   m_FOVAxisMode: 0
@@ -11105,7 +11105,7 @@ Camera:
   m_Depth: 0
   m_CullingMask:
     serializedVersion: 2
-    m_Bits: 4294967295
+    m_Bits: 53
   m_RenderingPath: -1
   m_TargetTexture: {fileID: 8400000, guid: 2c664c19210c0b648b40e3e9e752df8e, type: 2}
   m_TargetDisplay: 0

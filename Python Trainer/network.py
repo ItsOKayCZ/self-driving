@@ -1,7 +1,7 @@
 import torch
 from typing import Tuple
 from math import floor
-from variables import NUM_NEURONS, DISC_STEP_SIZE
+from variables import NUM_NEURONS, DISC_STEP_SIZE, IMAGE_SHAPE 
 import random
 
 from matplotlib import pyplot as plt
@@ -66,7 +66,7 @@ class QNetwork(torch.nn.Module):
         """
         if not use_tensor:
             observation = (
-                torch.from_numpy(observation[0].reshape(-1, 64, 64)).to(self.device),
+                torch.from_numpy(observation[0].reshape(-1, IMAGE_SHAPE[1], IMAGE_SHAPE[2])).to(self.device),
                 torch.from_numpy(observation[1]).to(self.device))
 
             self.eval()
@@ -79,7 +79,7 @@ class QNetwork(torch.nn.Module):
             self.eval()
             with torch.no_grad():
                 observation_input = [
-                    observation[0].reshape(-1, 64, 64),
+                    observation[0].reshape(-1, IMAGE_SHAPE[1], IMAGE_SHAPE[2]),
                     observation[1]
                 ]
                 q_values_speed, q_values_steer = self.forward(observation_input)

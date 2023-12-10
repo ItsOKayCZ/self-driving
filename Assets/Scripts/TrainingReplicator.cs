@@ -29,7 +29,11 @@ namespace Unity.MLAgents.Areas
 					continue;
 
 				Vector3 pos = Vector3.up * margin * i;
-				Instantiate(baseArea, pos, Quaternion.identity);
+				GameObject area = Instantiate(baseArea, pos, Quaternion.identity);
+				GameObject carCamera = area.transform.Find("Agent").Find("Car camera").gameObject;
+				carCamera.GetComponent<Camera>().targetTexture = null;
+
+				// agent.GetComponent<CameraSensor>().Camera.targetTexture = null;
 			}
 		}
 	}

@@ -135,10 +135,11 @@ public class AgentCar : Agent
 			trackGenerator.UpdateTrack(currentCheckpoint);
 		}
 
-		if (carController.getAmountOfWheelsOnRoad() <= 2)
+		int amountOfWheelsOffroad = 4 - carController.getAmountOfWheelsOnRoad();
+		AddReward(amountOfWheelsOffroad * -5f);
+		if (amountOfWheelsOffroad >= 3)
 		{
 			Debug.Log("Tire on terrain. Resetting");
-			SetReward(-5f);
 			EndEpisode();
 		}
 
