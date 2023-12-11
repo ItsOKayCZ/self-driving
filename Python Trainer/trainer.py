@@ -6,7 +6,7 @@ import torch
 import torch.onnx
 from mlagents_envs.environment import ActionTuple
 from torch.utils.data import Dataset, DataLoader
-from variables import IMAGE_SHAPE
+from variables import IMAGE_SHAPE,START_TEMPERATURE
 
 from WrapperNet import WrapperNet
 from network import QNetwork
@@ -49,7 +49,7 @@ class Trainer:
         rewards_stat = self.create_dataset(env, exploration_chance)
         self.memory.flip_dataset()
         new_model = self.fit(2)
-        if self.evaluate(env,new_model):
+        if self.evaluate(env,new_model,exploration_chance):
             self.model = new_model
         self.memory.wipe()
         return rewards_stat
@@ -166,7 +166,7 @@ class Trainer:
 
         return new_model
 
-    def evaluate(self, env, new_model: QNetwork) -> bool:
+    def evaluate(self, env, new_model: QNetwork,temperature: float) -> bool:
         print("------Evaluating------")
         old_model_scores = [0] * self.num_evaluations
         new_model_scores = [0] * self.num_evaluations
@@ -181,6 +181,9 @@ class Trainer:
             print("Updating model...")
             return True
         else:
+            if np.random.uniform() < temperature/START_TEMPERATURE:
+                print("Overriding, updating model...")
+                return True
             print("Not updating model...")
             return False
 
