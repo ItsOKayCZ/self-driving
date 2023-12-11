@@ -1,6 +1,7 @@
 import numpy as np
 from variables import NUM_NEURONS, DISCOUNT, REWARD_SAME_ACTION
 from torch.utils.data import Dataset
+from typing import List
 
 
 class Experience:
@@ -83,7 +84,7 @@ class ReplayBuffer():
 
     def __init__(self, size):
         self.size = size
-        self.buffer = []
+        self.buffer: List[Experience] = []
 
     def add_exp(self, exp):
         if not self.is_full():

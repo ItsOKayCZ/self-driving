@@ -80,7 +80,7 @@ if __name__ == "__main__":
         qnet = QNetwork(visual_input_shape=IMAGE_SHAPE, nonvis_input_shape=(1,), encoding_size=ENCODING_SIZE,
                         device=device)
         trainer = Trainer(model=qnet, buffer_size=NUM_TRAINING_EXAMPLES, device=device, learning_rate=LEARNING_RATE,
-                          num_evaluations=NUM_EVALUATION_EXAMPLES, num_agents=NUM_AREAS)
+                          num_evaluations=NUM_EVALUATION_EXAMPLES, num_agents=NUM_AREAS, writer=writer)
 
         if SAVE_MODEL:
             folder_name = f'./models/{datetime.datetime.now().strftime("%y-%m-%d %H%M%S")}'
@@ -90,17 +90,18 @@ if __name__ == "__main__":
             print(f'---- Not saving model as the -s flag is default to "False"')
 
         for epoch in range(num_epochs):
-            print(f"epoch: {epoch}, temperature:{temperature}")
+            print("------Training------")
+            print(f"Epoch: {epoch}, Temperature:{temperature}")
             reward = trainer.train(env, temperature)
             reward /= NUM_AREAS
             reward /= NUM_TRAINING_EXAMPLES
-            writer.add_scalar("Reward/Train", reward, epoch)
+            writer.add_scalar("Reward/Epoch", reward, epoch)
             temperature = relu(temperature - temperature_red)
 
             if SAVE_MODEL:
                 trainer.save_model(f'{folder_name}/model-epoch-{epoch}-reward-{reward}.onnx')
-
-            print(f"reward earned: {reward}")
+            print("------Done------")
+            print(f"Reward earned: {reward}")
             writer.flush()
     except KeyboardInterrupt:
         print("\nTraining interrupted, continue to next cell to save to save the model.")
