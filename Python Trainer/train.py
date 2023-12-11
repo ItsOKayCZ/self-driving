@@ -1,4 +1,3 @@
-import matplotlib.pyplot as plt
 from mlagents_envs.environment import UnityEnvironment
 from mlagents_envs.side_channel.engine_configuration_channel import EngineConfigurationChannel
 from network import QNetwork
@@ -15,8 +14,13 @@ from variables import (MAX_TRAINED_EPOCHS,
                        NUM_EVALUATION_EXAMPLES
                        )
 import argparse
-import json
 import torch
+
+import threading
+# for TensorBoard
+from torch.utils.tensorboard import SummaryWriter
+
+writer = SummaryWriter()
 
 parser = argparse.ArgumentParser()
 parser.add_argument('-n', '--num-areas', type=int, default=1)
@@ -33,9 +37,19 @@ TIME_SCALE = args.time_scale
 
 engine_channel = EngineConfigurationChannel()
 
+
 def relu(x):
     return max(0.0, x)
 
+
+def launch_tensor_board():
+    import os
+    os.system('tensorboard --logdir=runs')
+    return
+
+
+t = threading.Thread(target=launch_tensor_board, args=([]))
+t.start()
 
 if __name__ == "__main__":
     # set up the environment
@@ -62,10 +76,11 @@ if __name__ == "__main__":
     temperature = START_TEMPERATURE
     temperature_red = REDUCE_TEMPERATURE
 
-    results = []
     try:
-        qnet = QNetwork(visual_input_shape=IMAGE_SHAPE, nonvis_input_shape=(1,), encoding_size=ENCODING_SIZE, device=device)
-        trainer = Trainer(model=qnet, buffer_size=NUM_TRAINING_EXAMPLES, device=device, learning_rate=LEARNING_RATE,num_evaluations=NUM_EVALUATION_EXAMPLES,num_agents=NUM_AREAS)
+        qnet = QNetwork(visual_input_shape=IMAGE_SHAPE, nonvis_input_shape=(1,), encoding_size=ENCODING_SIZE,
+                        device=device)
+        trainer = Trainer(model=qnet, buffer_size=NUM_TRAINING_EXAMPLES, device=device, learning_rate=LEARNING_RATE,
+                          num_evaluations=NUM_EVALUATION_EXAMPLES, num_agents=NUM_AREAS)
 
         if SAVE_MODEL:
             folder_name = f'./models/{datetime.datetime.now().strftime("%y-%m-%d %H%M%S")}'
@@ -79,32 +94,17 @@ if __name__ == "__main__":
             reward = trainer.train(env, temperature)
             reward /= NUM_AREAS
             reward /= NUM_TRAINING_EXAMPLES
-            results.append(reward)
+            writer.add_scalar("Reward/Train", reward, epoch)
             temperature = relu(temperature - temperature_red)
 
             if SAVE_MODEL:
                 trainer.save_model(f'{folder_name}/model-epoch-{epoch}-reward-{reward}.onnx')
 
             print(f"reward earned: {reward}")
-
+            writer.flush()
     except KeyboardInterrupt:
         print("\nTraining interrupted, continue to next cell to save to save the model.")
-
+        writer.close()
     finally:
         env.close()
-
-    # Show the training graph
-    try:
-        if NO_DISPLAY:
-            training_data = {
-                'num_epochs': len(results),
-                'results': results
-            }
-            with open(f'{folder_name}/training-data.json', 'w') as f:
-                json.dump(training_data, f)
-            print(f'Saved training data in {folder_name}/training-data.json')
-        else:
-            plt.plot(range(len(results)), results)
-            plt.show()
-    except ValueError:
-        print("\nPlot failed on interrupted training.")
+        writer.close()
