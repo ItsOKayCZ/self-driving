@@ -35,7 +35,6 @@ public class CameraManager : MonoBehaviour
         if(Input.GetKeyDown(KeyCode.Tab))
         {
             SetCamera();
-            // toggleEl.isOn = freeFlyCamera.enabled;
             toggleEl.onValueChanged?.Invoke(true);
         }
     }
