@@ -11034,6 +11034,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 60f07460b9e2c9547aff4d2f4c12bf14, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  modelAsset: {fileID: 0}
+  renderTexture: {fileID: 0}
+  carController: {fileID: 0}
 --- !u!1 &6282186036672718645
 GameObject:
   m_ObjectHideFlags: 0

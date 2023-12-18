@@ -1,56 +1,65 @@
 using System.Collections.Generic;
-//using Unity.Barracuda;
+using Unity.Sentis;
 using UnityEngine;
 using UnityEngine.UI;
 
 public class InferenceEngine : MonoBehaviour
 {
     // TODO: Use sentis instead of barracuda
-    //public NNModel modelAsset;
-    //private Model runtimeModel;
+    public ModelAsset modelAsset;
+    private Model runtimeModel;
 
-    //public RenderTexture renderTexture;
-    //public PrometeoCarController carController;
+    public RenderTexture renderTexture;
+    public PrometeoCarController carController;
 
-    //private IWorker worker;
+    private IWorker worker;
     
     // Start is called before the first frame update
     void Start()
     {
-        //if (modelAsset == null)
-        //{
-        //    this.enabled = false;
-        //    return;
-        //}
+        if (modelAsset == null)
+        {
+           enabled = false;
+           return;
+        }
 
-        //runtimeModel = ModelLoader.Load(modelAsset);
+		runtimeModel = ModelLoader.Load(modelAsset);
 
-        //worker = WorkerFactory.CreateWorker(WorkerFactory.Type.CSharpBurst, runtimeModel);
+        worker = WorkerFactory.CreateWorker(BackendType.CPU, runtimeModel, verbose: false);
+        List<Model.Input> inputs = runtimeModel.inputs;
+
+        foreach(var input in inputs){
+            Debug.Log(input.name);
+            Debug.Log(input.shape);
+        }
     }
 
     private void Update()
     {
-        //var inputs = new Dictionary<string, Tensor>();
-        //inputs["vis_obs"] = new Tensor(renderTexture, 1);
-        //inputs["nonvis_obs"] = new Tensor(new TensorShape(1, 1));
+        TensorFloat vision = TextureConverter.ToTensor(renderTexture);
 
-        //inputs["nonvis_obs"][0, 0] = carController.steeringAxis;
+        float[] steering = new float[]{ carController.steeringAxis };
+        TensorShape shape = new TensorShape(1, 1);
+        TensorFloat nonVision = new TensorFloat(shape, steering);
 
-        //worker.Execute(inputs);
+        Dictionary<string, Tensor> inputs = new Dictionary<string, Tensor>(){
+            {"vis_obs", vision},
+            {"nonvis_obs", nonVision}
+        };
 
-        //var actions = worker.PeekOutput("action");
-        //bool goForward = actions[0, 0, 0, 0] == 1;
-        //bool goBack = actions[0, 0, 0, 1] == 1;
-        //bool turnRight = actions[0, 0, 0, 3] == 1;
-        //bool turnLeft = actions[0, 0, 0, 2] == 1;
-        //Debug.Log(actions[0, 0, 0, 0]);
-        //Debug.Log(actions[0, 0, 0, 1]);
-        //Debug.Log(actions[0, 0, 0, 2]);
-        //Debug.Log(actions[0, 0, 0, 3]);
-        //Debug.Log("___________________________");
+        worker.Execute(inputs);
 
-        //// carController.Movement(true, goForward, goBack, turnLeft, turnRight);
+        TensorFloat speedOutput = worker.PeekOutput("47") as TensorFloat;
+        speedOutput.MakeReadable();
+        float[] speed = speedOutput.ToReadOnlyArray();
 
-        //actions.Dispose();
+        TensorFloat steerOutput = worker.PeekOutput("53") as TensorFloat;
+        steerOutput.MakeReadable();
+        float[] steer = steerOutput.ToReadOnlyArray();
+        
+        carController.Movement(true, speed[0], steer[0]);
+
+        speedOutput.Dispose();
+        steerOutput.Dispose();
     }
 }
