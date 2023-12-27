@@ -10899,6 +10899,7 @@ MonoBehaviour:
     maxStep: 0
   hasUpgradedFromAgentParameters: 1
   MaxStep: 5000
+  m_Reward: 0
   parentCheckpoint: {fileID: 0}
   currentCheckpoint: 0
   carController: {fileID: 6282186034757043643}
