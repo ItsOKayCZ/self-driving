@@ -12,6 +12,8 @@ from WrapperNet import WrapperNet
 from network import QNetwork
 from Buffer import ReplayBuffer, Experience, StateTargetValuesDataset
 
+from tqdm import tqdm
+
 
 class Trainer:
     def __init__(self, model: QNetwork, buffer_size, device, learning_rate, num_evaluations, num_agents=1, writer=None):
@@ -73,6 +75,9 @@ class Trainer:
         exps = [Experience() for _ in range(self.num_agents)]
         terminated = [False for _ in range(self.num_agents)]
         n_active_agents = self.num_agents
+        
+        bar = tqdm(total=self.memory.size)
+
         while not self.memory.is_full():
 
             decision_steps, terminal_steps = env.get_steps(behavior_name)
@@ -91,7 +96,8 @@ class Trainer:
                     exp.rewards.pop(0)
                     all_rewards += sum(exp.rewards)
                     self.memory.add_exp(exp)
-                    print(f"{len(self.memory) * 100 / self.memory.size}%")
+                    # print(f"{len(self.memory) * 100 / self.memory.size}%")
+                    bar.update()
                     if len(self.memory) + n_active_agents > self.memory.size:
                         n_active_agents -= 0
                         terminated[agent_id] = True
@@ -133,6 +139,8 @@ class Trainer:
                 env.set_actions(behavior_name, action_tuple)
 
             env.step()
+
+        bar.close()
         return all_rewards
 
     def fit(self, epochs: int) -> QNetwork:
@@ -208,6 +216,8 @@ class Trainer:
         terminated = [False for _ in range(self.num_agents)]
         behavior_name = list(env.behavior_specs)[0]
 
+        bar = tqdm(total=self.num_evaluations)
+
         while len(score_list) != self.num_evaluations:
 
             decision_steps, terminal_steps = env.get_steps(behavior_name)
@@ -223,7 +233,9 @@ class Trainer:
                         terminated[agent_id] = True
                     else:
                         scores[agent_id] = 0
-                    print(f"{len(score_list) * 100 / self.num_evaluations}%")
+                    
+                    # print(f"{len(score_list) * 100 / self.num_evaluations}%")
+                    bar.update()
             else:
 
                 for agent_id, i in decision_steps.agent_id_to_index.items():
@@ -246,6 +258,9 @@ class Trainer:
                 env.set_actions(behavior_name, action_tuple)
 
             env.step()
+        
+        bar.close()
+        return score_list
 
     def save_model(self, path):
         torch.onnx.export(
