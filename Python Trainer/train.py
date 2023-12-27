@@ -1,5 +1,6 @@
 from mlagents_envs.environment import UnityEnvironment
 from mlagents_envs.side_channel.engine_configuration_channel import EngineConfigurationChannel
+from mlagents_envs.side_channel.environment_parameters_channel import EnvironmentParametersChannel
 from network import QNetwork
 from trainer import Trainer
 import os
@@ -36,6 +37,7 @@ NO_DISPLAY = args.no_display
 TIME_SCALE = args.time_scale
 
 engine_channel = EngineConfigurationChannel()
+env_channel = EnvironmentParametersChannel()
 
 
 def relu(x):
@@ -55,8 +57,9 @@ if __name__ == "__main__":
     # set up the environment
     # env_location = './env/Self driving.exe'
     env_location = ENV_PATH
-    env = UnityEnvironment(file_name=env_location, num_areas=NUM_AREAS, side_channels=[engine_channel])
+    env = UnityEnvironment(file_name=env_location, num_areas=NUM_AREAS, side_channels=[engine_channel, env_channel])
     engine_channel.set_configuration_parameters(time_scale=TIME_SCALE)
+    env_channel.set_float_parameter('distanceMultiplier', 1.0) # Changes the constant by which the driven distance is multiplied by
     env.reset()
 
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')

@@ -3,6 +3,9 @@ using Unity.MLAgents;
 using Unity.MLAgents.Sensors;
 using Unity.MLAgents.Actuators;
 using System.Collections.Generic;
+using System;
+using UnityEngine.Playables;
+using Unity.Sentis.Layers;
 
 public class AgentCar : Agent
 {
@@ -16,6 +19,9 @@ public class AgentCar : Agent
 
 
 	public int currentCheckpoint = 0;
+	private Vector2 previousPosition;
+	private Vector2 checkpointDir;
+	private float distanceMultiplier = 1f;
 
 	private bool pauseLearning = false;
 
@@ -33,6 +39,14 @@ public class AgentCar : Agent
 	public void Start()
 	{
 		carController.useControls = false;
+
+		var envParameters = Academy.Instance.EnvironmentParameters;
+		distanceMultiplier = envParameters.GetWithDefault("distanceMultiplier", 1f);
+	}
+
+	private Vector2 convert(Vector3 v)
+	{
+		return new Vector2(v.x, v.z);
 	}
 
 	public override void OnEpisodeBegin()
@@ -43,6 +57,8 @@ public class AgentCar : Agent
 		trackGenerator.ResetTrack();
 		transform.position = transform.parent.position;
 		transform.rotation = Quaternion.identity;
+		
+		previousPosition = convert(transform.position);
 
 		rBody.velocity = Vector3.zero;
 		rBody.angularVelocity = Vector3.zero;
@@ -56,6 +72,7 @@ public class AgentCar : Agent
 		pauseLearning = false;
 
 		currentCheckpoint = 0;
+		checkpointDir = convert(checkpoints[currentCheckpoint + 1].transform.position).normalized;
 	}
 
 	public override void CollectObservations(VectorSensor sensor)
@@ -114,6 +131,21 @@ public class AgentCar : Agent
 		return distance;
 	}
 
+	private float getDrivenDistanceRelative()
+	{
+		Vector2 currentPosition = convert(transform.position);
+		Vector2 dir = currentPosition - previousPosition;
+		float dist = dir.magnitude;
+
+		previousPosition = convert(transform.position);
+
+		if(Vector2.Dot(checkpointDir, dir) > 0){
+			return dist;
+		}
+	
+		return -1f;
+	}
+
 	void TriggerAction(ActionBuffers actions)
 	{
 		float speedMult = actions.ContinuousActions[k_Forward];
@@ -127,35 +159,32 @@ public class AgentCar : Agent
 		if (pauseLearning)
 			return;
 
+		float reward = 0;
+
 		float distanceToCheckpoint = calcDistanceToNextCheckpoint();
 		if(distanceToCheckpoint != -1 && distanceToCheckpoint < 10f)
 		{
-			AddReward(10f);
 			currentCheckpoint++;
+			checkpointDir = convert(checkpoints[currentCheckpoint + 1].transform.position - checkpoints[currentCheckpoint].transform.position).normalized;
 			trackGenerator.UpdateTrack(currentCheckpoint);
 		}
 
-		int amountOfWheelsOffroad = 4 - carController.getAmountOfWheelsOnRoad();
-		AddReward(amountOfWheelsOffroad * -5f);
-		if (amountOfWheelsOffroad >= 3)
+		int amountOfWheelsOnRoad = carController.getAmountOfWheelsOnRoad();
+		reward += -0.5f * (4 - amountOfWheelsOnRoad);
+		if(4 - amountOfWheelsOnRoad >= 2)
 		{
-			Debug.Log("Tire on terrain. Resetting");
+			Debug.Log("Tire on terrain. Resetting.");
+			SetReward(-5f);
 			EndEpisode();
 		}
 
-		// SetReward(carController.getAmountOfWheelsOnRoad() * 0.0001f);
-		// SetReward(4 - carController.getAmountOfWheelsOnRoad() * -0.1f);
+		float rewardForSpeed = -5f / (carController.carSpeed + 1) + 1;
+		reward += rewardForSpeed;
 
-		if(carController.carSpeed > 2f)
-		{
-			float rewardMultBySpeed = Mathf.Clamp(carController.carSpeed / carController.maxSpeed, 0f, 1f);
-			float reward = getDrivenDistance() * rewardMultBySpeed;
+		reward += getDrivenDistanceRelative() * distanceMultiplier;
+		Debug.Log(reward);
 
-			AddReward(reward);
-		} else
-		{
-			AddReward(-5f);
-		}
+		SetReward(reward);
 
 		TriggerAction(actions);
 	}

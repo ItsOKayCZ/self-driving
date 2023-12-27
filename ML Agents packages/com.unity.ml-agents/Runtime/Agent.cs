@@ -271,13 +271,13 @@ namespace Unity.MLAgents
         /// action that we wish to reinforce/reward, and set to a negative value
         /// when the agent performs a "bad" action that we wish to punish/deter.
         /// Additionally, the magnitude of the reward should not exceed 1.0
-        float m_Reward;
+        public float m_Reward;
 
         /// Represents the group reward the agent accumulated during the current step.
         float m_GroupReward;
 
         /// Keeps track of the cumulative reward in this episode.
-        float m_CumulativeReward;
+        private float m_CumulativeReward;
 
         /// Whether or not the agent requests an action.
         bool m_RequestAction;
