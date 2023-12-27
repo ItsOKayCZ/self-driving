@@ -93,6 +93,9 @@ class ReplayBuffer():
     def is_full(self):
         return len(self.buffer) >= self.size
 
+    def __len__(self):
+        return len(self.buffer)
+
     def create_targets(self):
         state_dataset = []
         targets_dataset_speed = []

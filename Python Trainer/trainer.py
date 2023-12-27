@@ -70,72 +70,73 @@ class Trainer:
         plotting = True;  # turn on plotting of q values and probs
         toPlot = False
 
+        exps = [Experience() for _ in range(self.num_agents)]
+        terminated = [False for _ in range(self.num_agents)]
+        n_active_agents = self.num_agents
         while not self.memory.is_full():
-            num_exp += 1 * self.num_agents
-            exps = [Experience() for _ in range(self.num_agents)]
-            terminated = [False for _ in range(self.num_agents)]
-            while True:
-                decision_steps, terminal_steps = env.get_steps(behavior_name)  #
 
-                dis_action_values = []
-                cont_action_values = []
+            decision_steps, terminal_steps = env.get_steps(behavior_name)
 
-                if len(decision_steps) == 0:
-                    for agent_id, i in terminal_steps.agent_id_to_index.items():
-                        exps[agent_id].add_instance(terminal_steps[agent_id].obs,
-                                                    None,
-                                                    (np.zeros(self.model.output_shape_speed),
-                                                     np.zeros(self.model.output_shape_steer)),
-                                                    terminal_steps[agent_id].reward)
+            dis_action_values = []
+            cont_action_values = []
+
+            if len(decision_steps) == 0:
+                for agent_id, i in terminal_steps.agent_id_to_index.items():
+                    exp = exps[agent_id]
+                    exp.add_instance(terminal_steps[agent_id].obs,
+                                                None,
+                                                (np.zeros(self.model.output_shape_speed),
+                                                 np.zeros(self.model.output_shape_steer)),
+                                                terminal_steps[agent_id].reward)
+                    exp.rewards.pop(0)
+                    all_rewards += sum(exp.rewards)
+                    self.memory.add_exp(exp)
+                    print(f"{len(self.memory) * 100 / self.memory.size}%")
+                    if len(self.memory) + n_active_agents <= self.memory.size:
+                        exps[agent_id] = Experience()
+                    else:
+                        n_active_agents -= 1
                         terminated[agent_id] = True
+            else:
+                for agent_id, i in decision_steps.agent_id_to_index.items():
 
-                else:
-                    for agent_id, i in decision_steps.agent_id_to_index.items():
+                    if terminated[agent_id]:
+                        dis_action_values.append(np.array([]))
+                        cont_action_values.append([0, 0])
+                        continue
+                    # Get the action
 
-                        if terminated[agent_id]:
-                            dis_action_values.append(np.array([]))
-                            cont_action_values.append([0, 0])
-                            continue
-                        # Get the action
+                    q_values, actions, indices = self.model.get_actions(decision_steps[i].obs, temperature,
+                                                                        toPlot=toPlot)
+                    # action_values = action_options[action_index]
 
-                        q_values, actions, indices = self.model.get_actions(decision_steps[i].obs, temperature,
-                                                                            toPlot=toPlot)
-                        # action_values = action_options[action_index]
+                    dis_action_values.append([])
+                    cont_action_values.append(actions)
 
-                        dis_action_values.append([])
-                        cont_action_values.append(actions)
+                    ######
+                    if len(exps[0].actions) and plotting == 40:
+                        toPlot = True
+                    else:
+                        toPlot = False
+                    ########
+                    exps[agent_id].add_instance(decision_steps[i].obs,
+                                                indices,
+                                                (q_values[0].detach().cpu().numpy(),
+                                                 q_values[1].detach().cpu().numpy()),
+                                                decision_steps[i].reward)
+                action_tuple = ActionTuple()
+                final_dis_action_values = np.array(dis_action_values)
+                final_cont_action_values = np.array(cont_action_values)
+                action_tuple.add_discrete(final_dis_action_values)
+                action_tuple.add_continuous(final_cont_action_values)
+                env.set_actions(behavior_name, action_tuple)
 
-                        ######
-                        if len(exps[0].actions) and plotting == 40:
-                            toPlot = True
-                        else:
-                            toPlot = False
-                        ########
-                        exps[agent_id].add_instance(decision_steps[i].obs,
-                                                    indices,
-                                                    (q_values[0].detach().cpu().numpy(),
-                                                     q_values[1].detach().cpu().numpy()),
-                                                    decision_steps[i].reward)
-                    action_tuple = ActionTuple()
-                    final_dis_action_values = np.array(dis_action_values)
-                    final_cont_action_values = np.array(cont_action_values)
-                    action_tuple.add_discrete(final_dis_action_values)
-                    action_tuple.add_continuous(final_cont_action_values)
-                    env.set_actions(behavior_name, action_tuple)
-
-                env.step()
-
-                if all(terminated):
-                    break
-            for exp in exps:
-                exp.rewards.pop(0)
-                all_rewards += sum(exp.rewards)
-                self.memory.add_exp(exp)
-
+            env.step()
         return all_rewards
 
     def fit(self, epochs: int) -> QNetwork:
 
+        print("Fitting...")
         new_model = copy.deepcopy(self.model)
 
         temp_states, targets = self.memory.create_targets()
@@ -177,7 +178,7 @@ class Trainer:
         return new_model
 
     def evaluate(self, env, new_model: QNetwork, temperature: float) -> bool:
-        print("------Evaluating------")
+        print("------ Evaluating ------")
         old_model_scores = [0] * self.num_evaluations
         new_model_scores = [0] * self.num_evaluations
         print("Testing new model...")
