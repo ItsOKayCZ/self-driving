@@ -59,10 +59,12 @@ if __name__ == "__main__":
     env_location = ENV_PATH
     env = UnityEnvironment(file_name=env_location, num_areas=NUM_AREAS, side_channels=[engine_channel, env_channel])
     engine_channel.set_configuration_parameters(time_scale=TIME_SCALE)
-    env_channel.set_float_parameter('distanceMultiplier', 1.0) # Changes the constant by which the driven distance is multiplied by
+    env_channel.set_float_parameter('distanceMultiplier', 100.0) # Changes the constant by which the driven distance is multiplied by
     env.reset()
 
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+    if torch.cuda.is_available():
+        torch.cuda.empty_cache()
     print(f'-------- Running on {device}')
 
     # get the action space and observation space
@@ -80,6 +82,7 @@ if __name__ == "__main__":
     temperature_red = REDUCE_TEMPERATURE
 
     try:
+        torch.cuda.memory._record_memory_history()
         qnet = QNetwork(visual_input_shape=IMAGE_SHAPE, nonvis_input_shape=(1,), encoding_size=ENCODING_SIZE,
                         device=device)
         trainer = Trainer(model=qnet, buffer_size=NUM_TRAINING_EXAMPLES, device=device, learning_rate=LEARNING_RATE,
@@ -106,6 +109,10 @@ if __name__ == "__main__":
             print("------Done------")
             print(f"Reward earned: {reward}")
             writer.flush()
+            if epoch >= 3:
+                torch.cuda.memory._dump_snapshot('./snapshot.pickle')
+                print('Done writing snapshot')
+                break
     except KeyboardInterrupt:
         print("\nTraining interrupted, continue to next cell to save to save the model.")
         writer.close()

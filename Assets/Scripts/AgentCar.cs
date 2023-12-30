@@ -6,6 +6,8 @@ using System.Collections.Generic;
 using System;
 using UnityEngine.Playables;
 using Unity.Sentis.Layers;
+using TMPro;
+using System.ComponentModel;
 
 public class AgentCar : Agent
 {
@@ -143,7 +145,7 @@ public class AgentCar : Agent
 			return dist;
 		}
 	
-		return -1f;
+		return 0f;
 	}
 
 	void TriggerAction(ActionBuffers actions)
@@ -170,16 +172,16 @@ public class AgentCar : Agent
 		}
 
 		int amountOfWheelsOnRoad = carController.getAmountOfWheelsOnRoad();
-		reward += -0.5f * (4 - amountOfWheelsOnRoad);
-		if(4 - amountOfWheelsOnRoad >= 2)
+		// reward += -0.5f * (4 - amountOfWheelsOnRoad);
+		if(4 - amountOfWheelsOnRoad >= 1)
 		{
 			Debug.Log("Tire on terrain. Resetting.");
-			SetReward(-5f);
+			AddReward(-5f);
 			EndEpisode();
 		}
 
-		float rewardForSpeed = -5f / (carController.carSpeed + 1) + 1;
-		reward += rewardForSpeed;
+		// float rewardForSpeed = -5f / (carController.carSpeed + 1) + 1;
+		// reward += rewardForSpeed;
 
 		reward += getDrivenDistanceRelative() * distanceMultiplier;
 		Debug.Log(reward);

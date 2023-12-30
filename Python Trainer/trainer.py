@@ -58,9 +58,11 @@ class Trainer:
         self.writer.add_histogram("Sample Q values (steer)", sample_q_values[1])
         self.writer.add_histogram("Sample Q values (speed)", sample_q_values[0])
         self.memory.flip_dataset()
-        new_model = self.fit(2)
-        if self.evaluate(env, new_model, exploration_chance):
-            self.model = new_model
+        # self.model = self.fit(2)
+        self.fit(2)
+        # new_model = self.fit(2)
+        # if self.evaluate(env, new_model, exploration_chance):
+        #     self.model = new_model
         self.memory.wipe()
         return rewards_stat
 
@@ -85,7 +87,8 @@ class Trainer:
             dis_action_values = []
             cont_action_values = []
 
-            if len(decision_steps) == 0:
+            # if len(decision_steps) == 0:
+            if len(terminal_steps) > 0:
                 for agent_id, i in terminal_steps.agent_id_to_index.items():
                     exp = exps[agent_id]
                     exp.add_instance(terminal_steps[agent_id].obs,
@@ -99,12 +102,12 @@ class Trainer:
                     # print(f"{len(self.memory) * 100 / self.memory.size}%")
                     bar.update()
                     if len(self.memory) + n_active_agents > self.memory.size:
-                        n_active_agents -= 0
+                        n_active_agents -= 1
                         terminated[agent_id] = True
                     else:
                         exps[agent_id] = Experience()
 
-            else:
+            if len(decision_steps) > 0:
                 for agent_id, i in decision_steps.agent_id_to_index.items():
 
                     if terminated[agent_id]:
@@ -146,7 +149,7 @@ class Trainer:
     def fit(self, epochs: int) -> QNetwork:
 
         print("Fitting...")
-        new_model = copy.deepcopy(self.model)
+        # new_model = copy.deepcopy(self.model)
 
         temp_states, targets = self.memory.create_targets()
         states = []
@@ -163,7 +166,8 @@ class Trainer:
         loss_sum = 0
         count = 0
         for epoch in range(epochs):
-            for batch in dataloader:
+            print(f'Fitting epoch {epoch + 1}')
+            for batch in tqdm(dataloader):
                 # We run the training step with the recorded inputs and new Q value targets.
                 X, y = batch
                 # X = [X[0].view((-1, 1, 64, 64)), X[1].view((-1, 1))]
@@ -173,7 +177,8 @@ class Trainer:
                 nonvis_X = X[1].view((-1, 1))
                 X = (vis_X, nonvis_X)
 
-                y_hat = new_model(X)
+                # y_hat = new_model(X)
+                y_hat = self.model(X)
                 loss = self.loss_fn(y_hat[0], y[0]) + self.loss_fn(y_hat[1], y[1])
                 # Backprop
                 self.optim.zero_grad()
@@ -182,9 +187,13 @@ class Trainer:
                 loss_sum += loss.item()
                 count += 1
 
+        # targets_speed.detach()
+        # targets_steer.detach()
+        torch.cuda.empty_cache()
+
         self.writer.add_scalar("Loss/Epoch", loss_sum / count, self.curr_epoch)
         self.curr_epoch += 1
-        return new_model
+        # return new_model
 
     def evaluate(self, env, new_model: QNetwork, temperature: float) -> bool:
         print("------ Evaluating ------")
@@ -218,14 +227,15 @@ class Trainer:
 
         bar = tqdm(total=self.num_evaluations)
 
-        while len(score_list) != self.num_evaluations:
+        while len(score_list) < self.num_evaluations:
 
             decision_steps, terminal_steps = env.get_steps(behavior_name)
 
             dis_action_values = []
             cont_action_values = []
 
-            if len(decision_steps) == 0:
+            # if len(decision_steps) == 0:
+            if len(terminal_steps) > 0:
                 for agent_id, i in terminal_steps.agent_id_to_index.items():
                     score_list.append(scores[agent_id])
                     if n_active_agents + len(score_list) > self.num_evaluations:
@@ -236,8 +246,8 @@ class Trainer:
                     
                     # print(f"{len(score_list) * 100 / self.num_evaluations}%")
                     bar.update()
-            else:
 
+            if len(decision_steps) > 0:
                 for agent_id, i in decision_steps.agent_id_to_index.items():
                     if terminated[agent_id]:
                         dis_action_values.append(np.array([]))
@@ -272,5 +282,5 @@ class Trainer:
             path,
             opset_version=11,
             input_names=['vis_obs', 'nonvis_obs'],
-            output_names=['prediction', 'action'],
+            output_names=['steer_outputs', 'speed_output', 'steer', 'speed'],
         )
