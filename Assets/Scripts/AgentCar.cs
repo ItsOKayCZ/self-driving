@@ -24,6 +24,7 @@ public class AgentCar : Agent
 	private Vector2 previousPosition;
 	private Vector2 checkpointDir;
 	private float distanceMultiplier = 1f;
+	private float[] previousDistanceToCheckpoints = { 0f, 0f };
 
 	private bool pauseLearning = false;
 
@@ -34,7 +35,6 @@ public class AgentCar : Agent
 	// const int k_Right = 1;
 
 	public PrometeoCarController carController;
-	// public CarController carController;
 	public Rigidbody rBody;
 	public TrackGenerator trackGenerator;
 
@@ -74,16 +74,13 @@ public class AgentCar : Agent
 		pauseLearning = false;
 
 		currentCheckpoint = 0;
-		checkpointDir = convert(checkpoints[currentCheckpoint + 1].transform.position).normalized;
+		previousDistanceToCheckpoints[0] = calcDistanceToNextCheckpoint();
+		previousDistanceToCheckpoints[1] = calcDistanceToNextNextCheckpoint();
 	}
 
 	public override void CollectObservations(VectorSensor sensor)
 	{
-		// sensor.AddObservation(carController.carSpeed);
-		// sensor.AddObservation(carController.currentSteerAngle);
 		sensor.AddObservation(carController.steeringAxis);
-
-		// sensor.AddObservation(calcDistanceToNextCheckpoint());
 	}
 
 	private GameObject getNextCheckpoint()
@@ -113,6 +110,16 @@ public class AgentCar : Agent
 		return calcDistance(nextCheckpoint.transform.position, transform.position);
 	}
 
+	private float calcDistanceToNextNextCheckpoint()
+	{
+		if(checkpoints.Count == 0)
+			return -1;
+
+		GameObject checkpoint = checkpoints[currentCheckpoint + 2];
+
+		return calcDistance(checkpoint.transform.position, transform.position);
+	}
+
 	private float getDrivenDistance()
 	{
 		float distance = 0f;
@@ -135,17 +142,14 @@ public class AgentCar : Agent
 
 	private float getDrivenDistanceRelative()
 	{
-		Vector2 currentPosition = convert(transform.position);
-		Vector2 dir = currentPosition - previousPosition;
-		float dist = dir.magnitude;
+		float currentDist = calcDistanceToNextCheckpoint();
 
-		previousPosition = convert(transform.position);
+		float currDiff = previousDistanceToCheckpoints[0] - currentDist;
 
-		if(Vector2.Dot(checkpointDir, dir) > 0){
-			return dist;
-		}
-	
-		return 0f;
+		previousDistanceToCheckpoints[0] = currentDist;
+		previousDistanceToCheckpoints[1] = calcDistanceToNextNextCheckpoint();
+
+		return currDiff;
 	}
 
 	void TriggerAction(ActionBuffers actions)
@@ -164,15 +168,15 @@ public class AgentCar : Agent
 		float reward = 0;
 
 		float distanceToCheckpoint = calcDistanceToNextCheckpoint();
-		if(distanceToCheckpoint != -1 && distanceToCheckpoint < 10f)
+		if(distanceToCheckpoint != -1 && distanceToCheckpoint < 2f)
 		{
 			currentCheckpoint++;
-			checkpointDir = convert(checkpoints[currentCheckpoint + 1].transform.position - checkpoints[currentCheckpoint].transform.position).normalized;
 			trackGenerator.UpdateTrack(currentCheckpoint);
+			previousDistanceToCheckpoints[0] = previousDistanceToCheckpoints[1];
+			previousDistanceToCheckpoints[1] = calcDistanceToNextNextCheckpoint();
 		}
 
 		int amountOfWheelsOnRoad = carController.getAmountOfWheelsOnRoad();
-		// reward += -0.5f * (4 - amountOfWheelsOnRoad);
 		if(4 - amountOfWheelsOnRoad >= 1)
 		{
 			Debug.Log("Tire on terrain. Resetting.");
@@ -180,11 +184,7 @@ public class AgentCar : Agent
 			EndEpisode();
 		}
 
-		// float rewardForSpeed = -5f / (carController.carSpeed + 1) + 1;
-		// reward += rewardForSpeed;
-
 		reward += getDrivenDistanceRelative() * distanceMultiplier;
-		Debug.Log(reward);
 
 		SetReward(reward);
 

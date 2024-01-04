@@ -49,15 +49,19 @@ public class InferenceEngine : MonoBehaviour
 
         worker.Execute(inputs);
 
-        TensorFloat speedOutput = worker.PeekOutput("47") as TensorFloat;
+        TensorFloat speedOutput = worker.PeekOutput("speed") as TensorFloat;
         speedOutput.MakeReadable();
         float[] speed = speedOutput.ToReadOnlyArray();
 
-        TensorFloat steerOutput = worker.PeekOutput("53") as TensorFloat;
+        TensorFloat steerOutput = worker.PeekOutput("steer") as TensorFloat;
         steerOutput.MakeReadable();
         float[] steer = steerOutput.ToReadOnlyArray();
+        Debug.Log(speed[0]);
+        Debug.Log(steer[0]);
+        Debug.Log("---------------------");
         
-        carController.Movement(true, speed[0], steer[0]);
+        // carController.Movement(true, speed[0], steer[0]);
+        carController.Movement(true, steer[0] + 0.5f, speed[0]);
 
         speedOutput.Dispose();
         steerOutput.Dispose();
