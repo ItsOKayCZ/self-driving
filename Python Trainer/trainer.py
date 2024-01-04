@@ -12,6 +12,8 @@ from WrapperNet import WrapperNet
 from network import QNetwork
 from Buffer import ReplayBuffer, Experience, StateTargetValuesDataset
 
+import gc
+
 from tqdm import tqdm
 
 
@@ -59,7 +61,7 @@ class Trainer:
         self.writer.add_histogram("Sample Q values (speed)", sample_q_values[0])
         self.memory.flip_dataset()
         # self.model = self.fit(2)
-        self.fit(2)
+        self.fit(1)
         # new_model = self.fit(2)
         # if self.evaluate(env, new_model, exploration_chance):
         #     self.model = new_model
@@ -184,15 +186,13 @@ class Trainer:
                 self.optim.zero_grad()
                 loss.backward()
                 self.optim.step()
+                self.optim.zero_grad(set_to_none=True)
                 loss_sum += loss.item()
                 count += 1
 
-        # targets_speed.detach()
-        # targets_steer.detach()
-        torch.cuda.empty_cache()
-
         self.writer.add_scalar("Loss/Epoch", loss_sum / count, self.curr_epoch)
         self.curr_epoch += 1
+
         # return new_model
 
     def evaluate(self, env, new_model: QNetwork, temperature: float) -> bool:

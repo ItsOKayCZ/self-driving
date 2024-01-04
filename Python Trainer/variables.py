@@ -5,12 +5,12 @@ IMAGE_SHAPE = (1, 80, 160)
 
 # Training
 MAX_TRAINED_EPOCHS = 1000
-NUM_TRAINING_EXAMPLES = 1000  # 1500
+NUM_TRAINING_EXAMPLES = 1000 # 1500
 # NUM_EVALUATION_EXAMPLES = int(NUM_TRAINING_EXAMPLES / 10)+10 # adding 10 so its never 0
 NUM_EVALUATION_EXAMPLES = int(NUM_TRAINING_EXAMPLES / 10)+10 # adding 10 so its never 0
 
 # Hyperparameters
-START_TEMPERATURE = 5
+START_TEMPERATURE = 10
 REDUCE_TEMPERATURE = START_TEMPERATURE / 100  # 400 = when we want the to start to be 0
 DISCOUNT = 1. # 0.55  # devalues future reward
 LEARNING_RATE = 0.0005
@@ -19,5 +19,5 @@ LEARNING_RATE = 0.0005
 REWARD_SAME_ACTION = 1.0  # will be added to the reward for sticking with the same action
 
 # Discretization
-NUM_NEURONS = 2  # number of neurons in the output layer (per variable)
+NUM_NEURONS = 2 # number of neurons in the output layer (per variable)
 DISC_STEP_SIZE = 1 / (NUM_NEURONS - 1)

@@ -50,12 +50,12 @@ def launch_tensor_board():
     return
 
 
+# TODO: Kill thread when script stops. The thread still runs when the script ends
 t = threading.Thread(target=launch_tensor_board, args=([]))
 t.start()
 
 if __name__ == "__main__":
     # set up the environment
-    # env_location = './env/Self driving.exe'
     env_location = ENV_PATH
     env = UnityEnvironment(file_name=env_location, num_areas=NUM_AREAS, side_channels=[engine_channel, env_channel])
     engine_channel.set_configuration_parameters(time_scale=TIME_SCALE)
@@ -82,7 +82,6 @@ if __name__ == "__main__":
     temperature_red = REDUCE_TEMPERATURE
 
     try:
-        torch.cuda.memory._record_memory_history()
         qnet = QNetwork(visual_input_shape=IMAGE_SHAPE, nonvis_input_shape=(1,), encoding_size=ENCODING_SIZE,
                         device=device)
         trainer = Trainer(model=qnet, buffer_size=NUM_TRAINING_EXAMPLES, device=device, learning_rate=LEARNING_RATE,
@@ -95,6 +94,7 @@ if __name__ == "__main__":
         else:
             print(f'---- Not saving model as the -s flag is default to "False"')
 
+        # torch.cuda.memory._record_memory_history()
         for epoch in range(num_epochs):
             print("------Training------")
             print(f"Epoch: {epoch}, Temperature:{temperature}")
@@ -109,10 +109,10 @@ if __name__ == "__main__":
             print("------Done------")
             print(f"Reward earned: {reward}")
             writer.flush()
-            if epoch >= 3:
-                torch.cuda.memory._dump_snapshot('./snapshot.pickle')
-                print('Done writing snapshot')
-                break
+            # if epoch >= 2:
+            #     torch.cuda.memory._dump_snapshot('snapshot.pickle')
+            #     print('Done writing snapshot')
+            #     break
     except KeyboardInterrupt:
         print("\nTraining interrupted, continue to next cell to save to save the model.")
         writer.close()
