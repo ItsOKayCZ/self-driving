@@ -8,7 +8,7 @@ import datetime
 from variables import (MAX_TRAINED_EPOCHS,
                        START_TEMPERATURE,
                        REDUCE_TEMPERATURE,
-                       NUM_TRAINING_EXAMPLES,
+                       NUM_TRAINING_DATA,
                        IMAGE_SHAPE,
                        ENCODING_SIZE,
                        LEARNING_RATE,
@@ -84,7 +84,7 @@ if __name__ == "__main__":
     try:
         qnet = QNetwork(visual_input_shape=IMAGE_SHAPE, nonvis_input_shape=(1,), encoding_size=ENCODING_SIZE,
                         device=device)
-        trainer = Trainer(model=qnet, buffer_size=NUM_TRAINING_EXAMPLES, device=device, learning_rate=LEARNING_RATE,
+        trainer = Trainer(model=qnet, buffer_size=NUM_TRAINING_DATA, device=device, learning_rate=LEARNING_RATE,
                           num_evaluations=NUM_EVALUATION_EXAMPLES, num_agents=NUM_AREAS, writer=writer)
 
         if SAVE_MODEL:
@@ -100,7 +100,7 @@ if __name__ == "__main__":
             print(f"Epoch: {epoch}, Temperature:{temperature}")
             reward = trainer.train(env, temperature)
             reward /= NUM_AREAS
-            reward /= NUM_TRAINING_EXAMPLES
+            reward /= NUM_TRAINING_DATA
             writer.add_scalar("Reward/Epoch", reward, epoch)
             temperature = relu(temperature - temperature_red)
 

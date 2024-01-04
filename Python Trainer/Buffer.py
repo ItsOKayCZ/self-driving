@@ -79,11 +79,14 @@ class Experience:
         target_matrix = target_matrix.astype("float32").reshape(-1)
         return target_matrix
 
+    def __len__(self):
+        return len(self.actions)
+
 
 class ReplayBuffer():
 
     def __init__(self, size):
-        self.size = size
+        self.max_size = size
         self.buffer: List[Experience] = []
 
     def add_exp(self, exp):
@@ -91,10 +94,10 @@ class ReplayBuffer():
             self.buffer.append(exp)
 
     def is_full(self):
-        return len(self.buffer) >= self.size
+        return len(self.buffer) >= self.max_size
 
     def __len__(self):
-        return len(self.buffer)
+        return sum([len(x) for x in self.buffer])
 
     def create_targets(self):
         state_dataset = []

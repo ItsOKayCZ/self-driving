@@ -72,17 +72,14 @@ class Trainer:
         behavior_name = list(env.behavior_specs)[0]
         all_rewards = 0
         # Read and store the Behavior Specs of the Environment
-        num_exp = 0
-        plotting = True;  # turn on plotting of q values and probs
-        toPlot = False
 
         exps = [Experience() for _ in range(self.num_agents)]
         terminated = [False for _ in range(self.num_agents)]
         n_active_agents = self.num_agents
-        
-        bar = tqdm(total=self.memory.size)
 
-        while not self.memory.is_full():
+        bar = tqdm(total=self.memory.max_size)
+
+        while len(self.memory) + sum([len(x) for x in exps]) < self.memory.max_size:
 
             decision_steps, terminal_steps = env.get_steps(behavior_name)
 
@@ -93,21 +90,18 @@ class Trainer:
             if len(terminal_steps) > 0:
                 for agent_id, i in terminal_steps.agent_id_to_index.items():
                     exp = exps[agent_id]
+                    exp.rewards.pop(0)
                     exp.add_instance(terminal_steps[agent_id].obs,
                                      None,
                                      (np.zeros(self.model.output_shape_speed),
                                       np.zeros(self.model.output_shape_steer)),
                                      terminal_steps[agent_id].reward)
-                    exp.rewards.pop(0)
+
+                    bar.update()
                     all_rewards += sum(exp.rewards)
                     self.memory.add_exp(exp)
-                    # print(f"{len(self.memory) * 100 / self.memory.size}%")
-                    bar.update()
-                    if len(self.memory) + n_active_agents > self.memory.size:
-                        n_active_agents -= 1
-                        terminated[agent_id] = True
-                    else:
-                        exps[agent_id] = Experience()
+                    # print(f"{len(self.memory) * 100 / self.memory.max_size}%")
+                    exps[agent_id] = Experience()
 
             if len(decision_steps) > 0:
                 for agent_id, i in decision_steps.agent_id_to_index.items():
@@ -118,24 +112,19 @@ class Trainer:
                         continue
                     # Get the action
 
-                    q_values, actions, indices = self.model.get_actions(decision_steps[i].obs, temperature,
-                                                                        toPlot=toPlot)
+                    q_values, actions, indices = self.model.get_actions(decision_steps[i].obs, temperature)
                     # action_values = action_options[action_index]
 
                     dis_action_values.append([])
                     cont_action_values.append(actions)
 
-                    ######
-                    if len(exps[0].actions) and plotting == 40:
-                        toPlot = True
-                    else:
-                        toPlot = False
-                    ########
                     exps[agent_id].add_instance(decision_steps[i].obs,
                                                 indices,
                                                 (q_values[0].detach().cpu().numpy(),
                                                  q_values[1].detach().cpu().numpy()),
                                                 decision_steps[i].reward)
+                    bar.update()
+
                 action_tuple = ActionTuple()
                 final_dis_action_values = np.array(dis_action_values)
                 final_cont_action_values = np.array(cont_action_values)
@@ -145,6 +134,10 @@ class Trainer:
 
             env.step()
 
+        for exp in exps:
+            exp.actions[-1]=None
+            self.memory.add_exp(exp)
+            all_rewards += sum(exp.rewards)
         bar.close()
         return all_rewards
 
@@ -168,7 +161,7 @@ class Trainer:
         loss_sum = 0
         count = 0
         for epoch in range(epochs):
-            print(f'Fitting epoch {epoch + 1}')
+            print(f'Epoch {epoch + 1}')
             for batch in tqdm(dataloader):
                 # We run the training step with the recorded inputs and new Q value targets.
                 X, y = batch
@@ -243,7 +236,7 @@ class Trainer:
                         terminated[agent_id] = True
                     else:
                         scores[agent_id] = 0
-                    
+
                     # print(f"{len(score_list) * 100 / self.num_evaluations}%")
                     bar.update()
 
@@ -268,7 +261,7 @@ class Trainer:
                 env.set_actions(behavior_name, action_tuple)
 
             env.step()
-        
+
         bar.close()
         return score_list
 
