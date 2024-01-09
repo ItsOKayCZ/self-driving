@@ -90,13 +90,13 @@ class Trainer:
             if len(terminal_steps) > 0:
                 for agent_id, i in terminal_steps.agent_id_to_index.items():
                     exp = exps[agent_id]
-                    exp.rewards.pop(0)
                     exp.add_instance(terminal_steps[agent_id].obs,
                                      None,
                                      (np.zeros(self.model.output_shape_speed),
                                       np.zeros(self.model.output_shape_steer)),
                                      terminal_steps[agent_id].reward)
 
+                    exp.rewards.pop(0)
                     bar.update()
                     all_rewards += sum(exp.rewards)
                     self.memory.add_exp(exp)
