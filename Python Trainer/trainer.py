@@ -60,8 +60,8 @@ class Trainer:
         self.writer.add_histogram("Sample Q values (steer)", sample_q_values[1])
         self.writer.add_histogram("Sample Q values (speed)", sample_q_values[0])
         self.memory.flip_dataset()
-        # self.model = self.fit(2)
-        self.fit(1)
+
+        self.model = self.fit(1)
         # new_model = self.fit(2)
         # if self.evaluate(env, new_model, exploration_chance):
         #     self.model = new_model
@@ -144,7 +144,7 @@ class Trainer:
     def fit(self, epochs: int) -> QNetwork:
 
         print("Fitting...")
-        # new_model = copy.deepcopy(self.model)
+        new_model = copy.deepcopy(self.model)
 
         temp_states, targets = self.memory.create_targets()
         states = []
@@ -172,8 +172,7 @@ class Trainer:
                 nonvis_X = X[1].view((-1, 1))
                 X = (vis_X, nonvis_X)
 
-                # y_hat = new_model(X)
-                y_hat = self.model(X)
+                y_hat = new_model(X)
                 loss = self.loss_fn(y_hat[0], y[0]) + self.loss_fn(y_hat[1], y[1])
                 # Backprop
                 self.optim.zero_grad()
@@ -186,7 +185,7 @@ class Trainer:
         self.writer.add_scalar("Loss/Epoch", loss_sum / count, self.curr_epoch)
         self.curr_epoch += 1
 
-        # return new_model
+        return new_model
 
     def evaluate(self, env, new_model: QNetwork, temperature: float) -> bool:
         print("------ Evaluating ------")
