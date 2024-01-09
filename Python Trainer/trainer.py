@@ -75,8 +75,7 @@ class Trainer:
 
         exps = [Experience() for _ in range(self.num_agents)]
         terminated = [False for _ in range(self.num_agents)]
-        n_active_agents = self.num_agents
-
+        env.reset()
         bar = tqdm(total=self.memory.max_size)
 
         while len(self.memory) + sum([len(x) for x in exps]) < self.memory.max_size:
