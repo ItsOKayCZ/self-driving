@@ -134,6 +134,8 @@ class Trainer:
             env.step()
 
         for exp in exps:
+            if len(exp.actions) == 0:
+                continue
             exp.actions[-1]=None
             self.memory.add_exp(exp)
             all_rewards += sum(exp.rewards)
