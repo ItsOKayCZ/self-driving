@@ -102,6 +102,8 @@ class QNetwork(torch.nn.Module):
                 # action_index = action_index.tolist()[0]
         else:
             probs = torch.softmax(q_values / temperature, 1)
+            if len(probs[0])==NUM_NEURONS:
+                probs[0][-1]+=10/temperature
             if toPlot:
                 plt.bar(range(1, len(probs[0]) + 1), probs[0])
                 plt.show()
