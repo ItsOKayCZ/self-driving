@@ -52,13 +52,22 @@ class Trainer:
         """
         # env.reset()
         rewards_stat = self.create_dataset(env, exploration_chance)
-        sample_image = self.memory.buffer[0].observations[-1][0].reshape(IMAGE_SHAPE)
+        index = int(len(self.memory.buffer[0])/2)
+        sample_image = self.memory.buffer[0].observations[index][0].reshape(IMAGE_SHAPE)
 
-        sample_q_values = self.memory.buffer[0].predicted_values[-1]
+        sample_q_values = self.memory.buffer[0].predicted_values[index]
         self.writer.add_image("Sample image", sample_image)
 
-        self.writer.add_histogram("Sample Q values (steer)", sample_q_values[1])
-        self.writer.add_histogram("Sample Q values (speed)", sample_q_values[0])
+        steer = ""
+        speed = ""
+
+        for s in sample_q_values[0][0]:
+            speed += f"{s} "
+        for s in sample_q_values[1][0]:
+            steer += f"{s} "
+
+        self.writer.add_text("Sample Q values (steer)", steer)
+        self.writer.add_text("Sample Q values (speed)", speed)
         self.memory.flip_dataset()
 
         self.model = self.fit(1)
@@ -115,13 +124,16 @@ class Trainer:
                     # action_values = action_options[action_index]
 
                     dis_action_values.append([])
+                    if agent_id == 0:
+                        actions = (0.6,actions[1])
+                        indices[0][0] =1
                     cont_action_values.append(actions)
-
                     exps[agent_id].add_instance(decision_steps[i].obs,
                                                 indices,
                                                 (q_values[0].detach().cpu().numpy(),
                                                  q_values[1].detach().cpu().numpy()),
-                                                decision_steps[i].reward)
+                                                # decision_steps[i].reward)
+                                                (3 ** (decision_steps[i].reward * 2)) - 1)
                     bar.update()
 
                 action_tuple = ActionTuple()
@@ -134,9 +146,9 @@ class Trainer:
             env.step()
 
         for exp in exps:
-            if len(exp.actions) == 0:
+            if len(exp.actions) < 3:
                 continue
-            exp.actions[-1]=None
+            exp.actions[-1] = None
             self.memory.add_exp(exp)
             all_rewards += sum(exp.rewards)
         bar.close()

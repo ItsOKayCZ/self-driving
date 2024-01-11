@@ -59,7 +59,7 @@ if __name__ == "__main__":
     env_location = ENV_PATH
     env = UnityEnvironment(file_name=env_location, num_areas=NUM_AREAS, side_channels=[engine_channel, env_channel])
     engine_channel.set_configuration_parameters(time_scale=TIME_SCALE)
-    env_channel.set_float_parameter('distanceMultiplier', 100.0) # Changes the constant by which the driven distance is multiplied by
+    env_channel.set_float_parameter('distanceMultiplier', 1.0) # Changes the constant by which the driven distance is multiplied by
     env.reset()
 
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
