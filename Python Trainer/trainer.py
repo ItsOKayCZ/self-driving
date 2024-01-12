@@ -58,16 +58,28 @@ class Trainer:
         sample_q_values = self.memory.buffer[0].predicted_values[index]
         self.writer.add_image("Sample image", sample_image)
 
+        # Add text
         steer = ""
         speed = ""
-
         for s in sample_q_values[0][0]:
             speed += f"{s} "
         for s in sample_q_values[1][0]:
             steer += f"{s} "
+        self.writer.add_text("Sample Q values (steer)", steer, self.curr_epoch)
+        self.writer.add_text("Sample Q values (speed)", speed, self.curr_epoch)
 
-        self.writer.add_text("Sample Q values (steer)", steer)
-        self.writer.add_text("Sample Q values (speed)", speed)
+        # Add scalars
+        speed = {'off': sample_q_values[1][0][0], 'on': sample_q_values[1][0][1]}
+
+        steer = {}
+        steer_names = ['max-left', 'little-left', 'forward', 'little-right', 'right']
+        for i, s in enumerate(sample_q_values[1][0]):
+            steer[steer_names[i]] = s
+
+        self.writer.add_scalars("Sample_Q_values_steer", steer, self.curr_epoch)
+        self.writer.add_scalars("Sample_Q_values_speed", speed, self.curr_epoch)
+
+
         self.memory.flip_dataset()
 
         self.model = self.fit(1)
