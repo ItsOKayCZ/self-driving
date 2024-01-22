@@ -24,9 +24,9 @@ class Experience:
         :return:
         """
         new_observations = [(np.flip(vis, 2), nonvis) for vis, nonvis in self.observations]
-        new_actions = [(x[0][0], 2 * NUM_NEURONS - x[1][0]) if x is not None else None for x in self.actions]
+        new_actions = [ 2 * NUM_NEURONS - x[0] if x is not None else None for x in self.actions]
         # the new action index for steering is essentialy the action value * -1 expressed with the action index
-        new_predicted_values = [(np.flip(x[0], 0), np.flip(x[1], 0)) for x in self.predicted_values]
+        new_predicted_values = [np.flip(x, 0) for x in self.predicted_values]
 
         new_exp = Experience()
         new_exp.observations = new_observations
@@ -36,7 +36,6 @@ class Experience:
         return new_exp
 
     def calculate_targets(self):
-        targets_speed = []
         targets_steer = []
         states = []
         for e, observation in enumerate(self.observations):
@@ -44,30 +43,26 @@ class Experience:
             if self.actions[e] is None:
                 break
 
-            action_index_speed = self.actions[e][0]
-            action_index_steer = self.actions[e][1]
+            action_index_steer = self.actions[e]
             reward = self.rewards[e]
 
             if e != 0:
-                if self.actions[e][1] == self.actions[e - 1][1]:
+                if self.actions[e] == self.actions[e - 1]:
                     reward += REWARD_SAME_ACTION
 
             # we take the matrix of predicted values and for the actions we had taken adjust the value by the reward
             # and the value of the next state
-            target_matrix_speed = self.calculate_target(self.predicted_values[e][0],
-                                                        self.predicted_values[e + 1][0],
-                                                        action_index_speed, reward)
-            target_matrix_steer = self.calculate_target(self.predicted_values[e][1],
-                                                        self.predicted_values[e + 1][1],
+
+            target_matrix_steer = self.calculate_target(self.predicted_values[e],
+                                                        self.predicted_values[e + 1],
                                                         action_index_steer, reward)
             # adjust
             observation = [arr.astype("float32") for arr in observation]
 
             states.append(observation)
-            targets_speed.append(target_matrix_speed)
             targets_steer.append(target_matrix_steer)
 
-        return states, (targets_speed, targets_steer)
+        return states, targets_steer
 
     @staticmethod
     def calculate_target(q_values, next_q_values, action_index, reward):
@@ -101,14 +96,12 @@ class ReplayBuffer():
 
     def create_targets(self):
         state_dataset = []
-        targets_dataset_speed = []
         targets_dataset_steer = []
         for exp in self.buffer:
             states, targets = exp.calculate_targets()
-            targets_dataset_speed += targets[0]
-            targets_dataset_steer += targets[1]
+            targets_dataset_steer += targets
             state_dataset += states
-        return state_dataset, (targets_dataset_speed, targets_dataset_steer)
+        return state_dataset, targets_dataset_steer
 
     def flip_dataset(self):
         """
@@ -129,15 +122,14 @@ class ReplayBuffer():
 
 class StateTargetValuesDataset(Dataset):
 
-    def __init__(self, states: list, targets_speed: list, targets_steer: list):
+    def __init__(self, states: list,  targets_steer: list):
         self.states = states
-        self.targets_speed = targets_speed
         self.targets_steer = targets_steer
-        if len(states) != len(targets_speed):
+        if len(states) != len(targets_steer):
             raise ValueError
 
     def __len__(self) -> int:
         return len(self.states)
 
     def __getitem__(self, index: int):
-        return self.states[index], (self.targets_speed[index], self.targets_steer[index])
+        return self.states[index], self.targets_steer[index]

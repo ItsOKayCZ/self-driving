@@ -34,7 +34,6 @@ class QNetwork(torch.nn.Module):
             self.vis_conv2 = torch.nn.Conv2d(16, 32, 3)
             self.nonvis_dense = torch.nn.Linear(nonvis_input_shape[0], 8)
             self.dense = torch.nn.Linear(self.final_flat + 8, encoding_size)
-            self.output_speed = torch.nn.Linear(encoding_size, QNetwork.Num_neurons)
             self.output_steer = torch.nn.Linear(encoding_size, QNetwork.Num_neurons * 2 + 1)
 
     def forward(self, observation: tuple) -> tuple:
@@ -51,9 +50,8 @@ class QNetwork(torch.nn.Module):
         hidden = self.dense(hidden)
         hidden = torch.relu(hidden)
 
-        output_speed = self.output_speed(hidden)
         output_steer = self.output_steer(hidden)
-        return output_speed, output_steer
+        return output_steer
 
     def get_actions(self, observation: tuple, temperature: float, use_tensor=False, toPlot=False) -> tuple:
         """
@@ -71,10 +69,11 @@ class QNetwork(torch.nn.Module):
 
             self.eval()
             with torch.no_grad():
-                q_values_speed, q_values_steer = self.forward(observation)
-            q_values_speed, q_values_steer = q_values_speed.flatten(1), q_values_steer.flatten(1)
-            action_index_speed = self.pick_action(temperature, q_values_speed, toPlot)
+                q_values_steer = self.forward(observation)
+            q_values_steer =  q_values_steer.flatten(1)
             action_index_steer = self.pick_action(temperature, q_values_steer, toPlot)
+
+
         else:
             self.eval()
             with torch.no_grad():
@@ -82,16 +81,15 @@ class QNetwork(torch.nn.Module):
                     observation[0].reshape(-1, IMAGE_SHAPE[1], IMAGE_SHAPE[2]),
                     observation[1]
                 ]
-                q_values_speed, q_values_steer = self.forward(observation_input)
+                q_values_steer = self.forward(observation_input)
 
-            q_values_speed, q_values_steer = q_values_speed.flatten(1), q_values_steer.flatten(1)
-            action_index_speed = self.pick_action(temperature, q_values_speed, use_tensor=use_tensor)
+            q_values_steer = q_values_steer.flatten(1)
+
             action_index_steer = self.pick_action(temperature, q_values_steer, use_tensor=use_tensor)
 
-        action_speed = action_index_speed[0] * QNetwork.Disc_step_size / (3 / 2)  # so its a bit slower
         action_steer = (action_index_steer[0] - QNetwork.Num_neurons) * QNetwork.Disc_step_size
-
-        return (q_values_speed, q_values_steer), (action_speed, action_steer), (action_index_speed, action_index_steer)
+        action_speed = 0.5
+        return q_values_steer, (action_speed, action_steer),  action_index_steer
 
     @staticmethod
     def pick_action(temperature, q_values, toPlot=False, use_tensor=False):

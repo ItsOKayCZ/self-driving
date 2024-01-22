@@ -60,25 +60,18 @@ class Trainer:
 
         # Add text
         steer = ""
-        speed = ""
-        for s in sample_q_values[0][0]:
-            speed += f"{s} "
-        for s in sample_q_values[1][0]:
+
+        for s in sample_q_values[0]:
             steer += f"{s} "
         self.writer.add_text("Sample Q values (steer)", steer, self.curr_epoch)
-        self.writer.add_text("Sample Q values (speed)", speed, self.curr_epoch)
 
         # Add scalars
-        speed = {'off': sample_q_values[1][0][0], 'on': sample_q_values[1][0][1]}
-
         steer = {}
         steer_names = ['max-left', 'little-left', 'forward', 'little-right', 'right']
-        for i, s in enumerate(sample_q_values[1][0]):
+        for i, s in enumerate(sample_q_values[0]):
             steer[steer_names[i]] = s
 
         self.writer.add_scalars("Sample_Q_values_steer", steer, self.curr_epoch)
-        self.writer.add_scalars("Sample_Q_values_speed", speed, self.curr_epoch)
-
 
         self.memory.flip_dataset()
 
@@ -112,8 +105,7 @@ class Trainer:
                     exp = exps[agent_id]
                     exp.add_instance(terminal_steps[agent_id].obs,
                                      None,
-                                     (np.zeros(self.model.output_shape_speed),
-                                      np.zeros(self.model.output_shape_steer)),
+                                      np.zeros(self.model.output_shape_steer),
                                      terminal_steps[agent_id].reward)
 
                     exp.rewards.pop(0)
@@ -136,14 +128,11 @@ class Trainer:
                     # action_values = action_options[action_index]
 
                     dis_action_values.append([])
-                    if agent_id == 0:
-                        actions = (0.6,actions[1])
-                        indices[0][0] =1
+
                     cont_action_values.append(actions)
                     exps[agent_id].add_instance(decision_steps[i].obs,
                                                 indices,
-                                                (q_values[0].detach().cpu().numpy(),
-                                                 q_values[1].detach().cpu().numpy()),
+                                                 q_values.detach().cpu().numpy(),
                                                 # decision_steps[i].reward)
                                                 (3 ** (decision_steps[i].reward * 2)) - 1)
                     bar.update()
@@ -173,15 +162,12 @@ class Trainer:
 
         temp_states, targets = self.memory.create_targets()
         states = []
-        targets_speed = targets[0]
-        targets_steer = targets[1]
         for state in temp_states:
             states.append([torch.tensor(obs).to(self.device) for obs in state])
 
-        targets_speed = torch.tensor(np.array(targets_speed)).to(self.device)
-        targets_steer = torch.tensor(np.array(targets_steer)).to(self.device)
+        targets_steer = torch.tensor(np.array(targets)).to(self.device)
 
-        dataset = StateTargetValuesDataset(states, targets_speed, targets_steer)
+        dataset = StateTargetValuesDataset(states, targets_steer)
         dataloader = DataLoader(dataset, batch_size=64, shuffle=True)
         loss_sum = 0
         count = 0
@@ -198,7 +184,7 @@ class Trainer:
                 X = (vis_X, nonvis_X)
 
                 y_hat = new_model(X)
-                loss = self.loss_fn(y_hat[0], y[0]) + self.loss_fn(y_hat[1], y[1])
+                loss = self.loss_fn(y_hat, y)
                 # Backprop
                 self.optim.zero_grad()
                 loss.backward()
