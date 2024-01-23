@@ -75,10 +75,11 @@ class Trainer:
 
         self.memory.flip_dataset()
 
-        self.model = self.fit(1)
-        # new_model = self.fit(2)
-        # if self.evaluate(env, new_model, exploration_chance):
-        #     self.model = new_model
+        # self.model = self.fit(1)
+        ##
+        new_model = self.fit(2)
+        if self.evaluate(env, new_model, exploration_chance):
+            self.model = new_model
         self.memory.wipe()
         return rewards_stat
 
@@ -107,7 +108,9 @@ class Trainer:
                                      None,
                                       np.zeros(self.model.output_shape_steer),
                                      terminal_steps[agent_id].reward)
-
+                    if len(exp.actions)< 4:
+                        exps[agent_id] = Experience()
+                        continue
                     exp.rewards.pop(0)
                     bar.update()
                     all_rewards += sum(exp.rewards)
