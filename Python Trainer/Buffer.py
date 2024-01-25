@@ -26,7 +26,7 @@ class Experience:
         new_observations = [(np.flip(vis, 2), nonvis) for vis, nonvis in self.observations]
         new_actions = [ 2 * NUM_NEURONS - x[0] if x is not None else None for x in self.actions]
         # the new action index for steering is essentialy the action value * -1 expressed with the action index
-        new_predicted_values = [np.flip(x, 0) for x in self.predicted_values]
+        new_predicted_values = [np.flip(x, 1) for x in self.predicted_values]
 
         new_exp = Experience()
         new_exp.observations = new_observations
