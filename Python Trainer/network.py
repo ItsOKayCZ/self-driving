@@ -88,7 +88,8 @@ class QNetwork(torch.nn.Module):
             action_index_steer = self.pick_action(temperature, q_values_steer, use_tensor=use_tensor)
 
         action_steer = (action_index_steer[0] - QNetwork.Num_neurons) * QNetwork.Disc_step_size
-        action_speed = 0.5
+        # action_speed = 0.5
+        action_speed = torch.tensor([0.5])
         return q_values_steer, (action_speed, action_steer),  action_index_steer
 
     @staticmethod
