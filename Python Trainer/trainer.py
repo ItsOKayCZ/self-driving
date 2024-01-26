@@ -77,7 +77,7 @@ class Trainer:
 
         # self.model = self.fit(1)
         ##
-        new_model = self.fit(2)
+        new_model = self.fit(3)
         if self.evaluate(env, new_model, exploration_chance):
             self.model = new_model
         self.memory.wipe()
@@ -136,8 +136,8 @@ class Trainer:
                     exps[agent_id].add_instance(decision_steps[i].obs,
                                                 indices,
                                                  q_values.detach().cpu().numpy(),
-                                                # decision_steps[i].reward)
-                                                (3 ** (decision_steps[i].reward * 2)) - 1)
+                                                 2)
+                                                #(3 ** (decision_steps[i].reward * 2)) - 1)
                     bar.update()
 
                 action_tuple = ActionTuple()
@@ -155,6 +155,7 @@ class Trainer:
             exp.actions[-1] = None
             self.memory.add_exp(exp)
             all_rewards += sum(exp.rewards)
+
         bar.close()
         return all_rewards
 
@@ -204,6 +205,10 @@ class Trainer:
     def evaluate(self, env, new_model: QNetwork, temperature: float) -> bool:
         print("------ Evaluating ------")
 
+        if np.random.uniform() < temperature / START_TEMPERATURE:
+            print("Overriding, updating model...")
+            return True
+
         print("Testing new model...")
         new_model_scores = self.fill_scores(env, new_model)
 
@@ -218,9 +223,6 @@ class Trainer:
             print("Updating model...")
             return True
         else:
-            if np.random.uniform() < temperature / START_TEMPERATURE:
-                print("Overriding, updating model...")
-                return True
             print("Not updating model...")
             return False
 
