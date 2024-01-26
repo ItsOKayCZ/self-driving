@@ -288,5 +288,5 @@ class Trainer:
             path,
             opset_version=11,
             input_names=['vis_obs', 'nonvis_obs'],
-            output_names=['steer_outputs', 'speed_output', 'speed', 'steer'],
+            output_names=['steer_outputs', 'speed_output', 'speed'],
         )
