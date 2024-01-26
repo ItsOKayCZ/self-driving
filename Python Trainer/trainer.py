@@ -136,8 +136,8 @@ class Trainer:
                     exps[agent_id].add_instance(decision_steps[i].obs,
                                                 indices,
                                                  q_values.detach().cpu().numpy(),
-                                                # decision_steps[i].reward)
-                                                (3 ** (decision_steps[i].reward * 2)) - 1)
+                                                 2)
+                                                #(3 ** (decision_steps[i].reward * 2)) - 1)
                     bar.update()
 
                 action_tuple = ActionTuple()
