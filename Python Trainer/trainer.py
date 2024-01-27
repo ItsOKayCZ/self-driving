@@ -107,7 +107,7 @@ class Trainer:
                     exp.add_instance(terminal_steps[agent_id].obs,
                                      None,
                                       np.zeros(self.model.output_shape_steer),
-                                     terminal_steps[agent_id].reward)
+                                     terminal_steps[agent_id].reward*2)
                     if len(exp.actions)< 4:
                         exps[agent_id] = Experience()
                         continue
@@ -136,8 +136,8 @@ class Trainer:
                     exps[agent_id].add_instance(decision_steps[i].obs,
                                                 indices,
                                                  q_values.detach().cpu().numpy(),
-                                                 2)
-                                                #(3 ** (decision_steps[i].reward * 2)) - 1)
+                                                 #2)
+                                                (3 ** (decision_steps[i].reward * 2 )) - 1 + len(exps[agent_id])/3)
                     bar.update()
 
                 action_tuple = ActionTuple()
