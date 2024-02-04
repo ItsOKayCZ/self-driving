@@ -14,6 +14,7 @@ START_TEMPERATURE = 15
 REDUCE_TEMPERATURE = START_TEMPERATURE / 100  # 400 = when we want the to start to be 0
 DISCOUNT = 0.66# 0.55  # devalues future reward
 LEARNING_RATE = 0.001
+MIN_TEMPERATURE = 0.01
 
 # Reward
 REWARD_SAME_ACTION = 0.0  # will be added to the reward for sticking with the same action

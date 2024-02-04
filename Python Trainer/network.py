@@ -98,7 +98,16 @@ class QNetwork(torch.nn.Module):
             action_index = torch.argmax(q_values, dim=1, keepdim=True)[0]
             if not use_tensor:
                 action_index = action_index.tolist()
-                # action_index = action_index.tolist()[0]
+            
+            # if len(q_values[0]) == NUM_NEURONS or random.uniform(0, 1) > 0.7:
+            #     action_index = torch.argmax(q_values, dim=1, keepdim=True)[0]
+
+            #     if not use_tensor:
+            #         action_index = action_index.tolist()
+            # else:
+            #     action_index = random.choices(range(len(q_values[0])))
+            #     print(f'Picked randomly {action_index}')
+            
         else:
             probs = torch.softmax(q_values / temperature, 1)
         #    if len(probs[0])==NUM_NEURONS and temperature>6:

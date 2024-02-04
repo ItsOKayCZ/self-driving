@@ -12,7 +12,8 @@ from variables import (MAX_TRAINED_EPOCHS,
                        IMAGE_SHAPE,
                        ENCODING_SIZE,
                        LEARNING_RATE,
-                       NUM_EVALUATION_EXAMPLES
+                       NUM_EVALUATION_EXAMPLES,
+                       MIN_TEMPERATURE
                        )
 import argparse
 import torch
@@ -50,7 +51,6 @@ def launch_tensor_board():
     return
 
 
-# TODO: Kill thread when script stops. The thread still runs when the script ends
 t = threading.Thread(target=launch_tensor_board, args=([]))
 t.start()
 
@@ -103,6 +103,7 @@ if __name__ == "__main__":
             reward /= NUM_TRAINING_DATA
             writer.add_scalar("Reward/Epoch", reward, epoch)
             temperature = relu(temperature - temperature_red)
+            temperature = MIN_TEMPERATURE if temperature <= MIN_TEMPERATURE else temperature
 
             if SAVE_MODEL:
                 trainer.save_model(f'{folder_name}/model-epoch-{epoch}-reward-{reward}.onnx')
