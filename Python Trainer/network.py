@@ -88,7 +88,7 @@ class QNetwork(torch.nn.Module):
             action_index_speed = self.pick_action(temperature, q_values_speed, use_tensor=use_tensor)
             action_index_steer = self.pick_action(temperature, q_values_steer, use_tensor=use_tensor)
 
-        action_speed = action_index_speed[0] * QNetwork.Disc_step_size / (3 / 2)  # so its a bit slower
+        action_speed = action_index_speed[0] * QNetwork.Disc_step_size # so its a bit slower
         action_steer = (action_index_steer[0] - QNetwork.Num_neurons) * QNetwork.Disc_step_size
 
         return (q_values_speed, q_values_steer), (action_speed, action_steer), (action_index_speed, action_index_steer)
@@ -99,11 +99,20 @@ class QNetwork(torch.nn.Module):
             action_index = torch.argmax(q_values, dim=1, keepdim=True)[0]
             if not use_tensor:
                 action_index = action_index.tolist()
-                # action_index = action_index.tolist()[0]
+            
+            # if len(q_values[0]) == NUM_NEURONS or random.uniform(0, 1) > 0.7:
+            #     action_index = torch.argmax(q_values, dim=1, keepdim=True)[0]
+
+            #     if not use_tensor:
+            #         action_index = action_index.tolist()
+            # else:
+            #     action_index = random.choices(range(len(q_values[0])))
+            #     print(f'Picked randomly {action_index}')
+            
         else:
             probs = torch.softmax(q_values / temperature, 1)
-            if len(probs[0])==NUM_NEURONS:
-                probs[0][-1]+=10/temperature
+            # if len(probs[0])==NUM_NEURONS:
+            #     probs[0][-1]+=10/temperature
             if toPlot:
                 plt.bar(range(1, len(probs[0]) + 1), probs[0])
                 plt.show()
