@@ -102,7 +102,12 @@ if __name__ == "__main__":
                 if not os.path.isdir(folder_name):
                     os.makedirs(folder_name)
 
-                torch.save(qnet, f'{folder_name}/model-epoch-{epoch}.pkl')
+                torch.save({
+                    'epoch': epoch,
+                    'model_state_dict': qnet.state_dict(),
+                    'optimizer_state_dict': trainer.optim.state_dict(),
+                }, f'{folder_name}/model-epoch-{epoch}.pkl')
+
                 trainer.save_model(f'{folder_name}/model-epoch-{epoch}.onnx')
                 listener.reset()
 
