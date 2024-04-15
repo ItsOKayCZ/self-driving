@@ -10,7 +10,7 @@ from tqdm import tqdm
 
 from WrapperNet import WrapperNet
 from Network import QNetwork, action_options
-from Variables import LEARNING_RATE
+from Variables import LEARNING_RATE, VISUAL_INPUT_SHAPE, NONVISUAL_INPUT_SHAPE
 from Buffer import *
 
 
@@ -141,8 +141,10 @@ class Trainer:
                 # X = [X[0].view((-1, 1, 64, 64)), X[1].view((-1, 1))]
                 # y = y.view(-1, self.model.output_shape[1])
 
-                vis_X = X[0].view((-1, 1, 64, 64))
-                nonvis_X = X[1].view((-1, 1))
+                vis_X = X[0].view((-1, VISUAL_INPUT_SHAPE[0]
+                                   , VISUAL_INPUT_SHAPE[1]
+                                   , VISUAL_INPUT_SHAPE[2]))
+                nonvis_X = X[1].view((-1, NONVISUAL_INPUT_SHAPE[0]))
                 X = (vis_X, nonvis_X)
 
                 y_hat = self.model(X)
