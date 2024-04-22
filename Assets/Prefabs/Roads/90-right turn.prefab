@@ -326,7 +326,7 @@ MonoBehaviour:
   buildOnEnable: 0
   _baked: 0
   _markDynamic: 1
-  _size: 15
+  _size: 10
   _color: {r: 1, g: 1, b: 1, a: 1}
   _offset: {x: 0, y: 0, z: 0}
   _normalMethod: 1
