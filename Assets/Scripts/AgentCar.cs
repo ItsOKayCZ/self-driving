@@ -115,69 +115,20 @@ public class AgentCar : Agent
 		// bool goBack = false;
 		bool turnLeft = actions.DiscreteActions[k_Left] == 1;
 		bool turnRight = actions.DiscreteActions[k_Right] == 1;
-		// Debug.Log($"Forward: {goForward}\nBackward: {goBack}\nLeft: {turnLeft}\nRight: {turnRight}");
 
 		carController.Movement(true, goForward, goBack, turnLeft, turnRight);
-
-		/*
-		carController.verticalInput = carController.horizontalInput = 0;
-		carController.isBreaking = false;
-
-		if (goForward)
-			carController.verticalInput += 1;
-		if (goBack)
-			carController.isBreaking = true;
-
-		if (turnLeft)
-			carController.horizontalInput -= 1;
-		if (turnRight)
-			carController.horizontalInput += 1;
-		*/
-
-		/*
-		if (goForward)
-		{
-			carController.GoForwardAction();
-		}
-
-		if (goBack)
-		{
-			carController.GoReverseAction();
-		}
-
-		if (turnLeft)
-		{
-			carController.TurnLeftAction();
-		}
-		if (turnRight)
-		{
-			carController.TurnRightAction();
-		}
-		if (!turnLeft && !turnRight)
-		{
-			carController.ThrottleOffAction();
-		}
-		if (!goBack && !goForward && !carController.deceleratingCar)
-		{
-			carController.DecelerateCarAction();
-		}
-		if (!turnLeft && !turnRight && carController.steeringAxis != 0f)
-		{
-			carController.ResetCarSteeringAction();
-		}
-		*/
 	}
 
-    public override void OnActionReceived(ActionBuffers actions)
-    {
+	public override void OnActionReceived(ActionBuffers actions)
+	{
 		if (pauseLearning)
 			return;
 
 		float distanceToCheckpoint = calcDistanceToNextCheckpoint();
-		if(distanceToCheckpoint != -1 && distanceToCheckpoint < 10f)
+		if(distanceToCheckpoint != -1 && distanceToCheckpoint < 2.5f)
 		{
-            AddReward(5f);
-            currentCheckpoint++;
+			AddReward(5f);
+			currentCheckpoint++;
 			trackGenerator.UpdateTrack(currentCheckpoint);
 		}
 
@@ -191,26 +142,26 @@ public class AgentCar : Agent
 		// SetReward(carController.getAmountOfWheelsOnRoad() * 0.0001f);
 		// SetReward(4 - carController.getAmountOfWheelsOnRoad() * -0.1f);
 
-        if(carController.carSpeed > 2f)
-        {
-            float reward = getDrivenDistance();
-            Debug.Log(reward);
-            AddReward(reward);
-        } else
-        {
-            AddReward(-5f);
-        }
+		if(carController.carSpeed > 2f)
+		{
+			float reward = getDrivenDistance();
+			// Debug.Log(reward);
+			AddReward(reward);
+		} else
+		{
+			AddReward(-5f);
+		}
 
 		TriggerAction(actions);
-    }
+	}
 
-    public override void Heuristic(in ActionBuffers actionsOut)
-    {
+	public override void Heuristic(in ActionBuffers actionsOut)
+	{
 		var discreteActionsOut = actionsOut.DiscreteActions;
 
 		discreteActionsOut[k_Forward] = Input.GetKey(KeyCode.W) ? 1 : 0;
 		discreteActionsOut[k_Back] = Input.GetKey(KeyCode.S) ? 1 : 0;
 		discreteActionsOut[k_Left] = Input.GetKey(KeyCode.A) ? 1 : 0;
 		discreteActionsOut[k_Right] = Input.GetKey(KeyCode.D) ? 1 : 0;
-    }
+	}
 }
