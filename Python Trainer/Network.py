@@ -25,39 +25,46 @@ class QNetwork(torch.nn.Module):
             self.output_shape = (1, len(action_options))
             self.visual_input_shape = visual_input_shape
             self.nonvis_input_shape = nonvis_input_shape
+
             # calculating required size of the dense layer based on the conv layers
-            conv1_hw = self.conv_output_shape((height, width), 5, 1)
-            maxpool1_hw = self.conv_output_shape(conv1_hw, 2, 2)
-            conv2_hw = self.conv_output_shape(maxpool1_hw, 3, 1)
-            maxpool2_hw = self.conv_output_shape(conv2_hw, 2, 2)
-            self.final_flat = maxpool2_hw[0] * maxpool2_hw[1] * 32
+            hw = self.conv_output_shape((height, width), 8, 4, 4) # conv1
+            hw = self.conv_output_shape(hw, 2, 2) # maxpool
+            hw = self.conv_output_shape(hw, 4, 2) # conv 2
+            hw = self.conv_output_shape(hw, 3, 1) # conv 2
+            # hw = self.conv_output_shape(hw, 2, 2) # max pool
+            self.final_flat = hw[0] * hw[1] * 64
             print(self.final_flat)
 
             # layers
-            self.conv1 = torch.nn.Conv2d(initial_channels, 16, 5)
-            self.maxpool1 = torch.nn.MaxPool2d(2, 2)
-            self.conv2 = torch.nn.Conv2d(16, 32, 3)
-            self.maxpool2 = torch.nn.MaxPool2d(2, 2)
-            self.nonvis_dense = torch.nn.Linear(nonvis_input_shape[0], 8)
             self.dense1 = torch.nn.Linear(self.final_flat + 8, encoding_size)
             self.dense2 = torch.nn.Linear(encoding_size, self.output_shape[1])
+
+            self.conv1 = torch.nn.Conv2d(initial_channels, 32, 8 ,stride=4,padding=4)
+            self.conv2 = torch.nn.Conv2d(32, 64, 4,stride=2)
+            self.conv3 = torch.nn.Conv2d(64, 64, 3)
+
+            self.maxpool1 = torch.nn.MaxPool2d(2, 2)
+            self.maxpool2 = torch.nn.MaxPool2d(2, 2)
+
+            self.nonvis_dense = torch.nn.Linear(nonvis_input_shape[0], 8)
 
     def forward(self, observation: Tuple):
         visual_obs, nonvis_obs = observation
         nonvis_obs = nonvis_obs.view((-1, self.nonvis_input_shape[0]))
 
-        conv_1 = torch.relu(self.conv1(visual_obs))
-        maxpool1 = self.maxpool1(conv_1)
-        conv_2 = torch.relu(self.conv2(maxpool1))
-        maxpool2 = self.maxpool2(conv_2)
+        visual_y = torch.relu(self.conv1(visual_obs))
+        visual_y = self.maxpool1(visual_y)
+        visual_y = torch.relu(self.conv2(visual_y))
+        visual_y = torch.relu(self.conv3(visual_y))
+        visual_y = visual_y.reshape([-1, self.final_flat])
+        # maxpool2 = self.maxpool2(conv_2)
 
-        nonvis_dense = torch.relu(self.nonvis_dense(nonvis_obs))
+        nonvis_y = torch.relu(self.nonvis_dense(nonvis_obs))
 
-        hidden = maxpool2.reshape([-1, self.final_flat])
-        hidden = torch.concat([hidden, nonvis_dense], dim=1)
-        hidden = self.dense1(hidden)
-        hidden = torch.relu(hidden)
-        output = self.dense2(hidden)
+        comb_y = torch.concat([visual_y, nonvis_y], dim=1)
+        comb_y = self.dense1(comb_y)
+        comb_y = torch.relu(comb_y)
+        output = self.dense2(comb_y)
         return output
 
     def get_actions(self, observation, temperature, use_tensor=False):
