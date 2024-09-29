@@ -13,8 +13,15 @@ jobs:
     - uses: actions/checkout@v4
       with:
        fetch-depth: 0
+       lfs: true
 
-    - name: Building unity project
+    - uses: actions/cache@v4
+      with:
+       path: unity_env/Library
+       key: Library-LinuxStandalone
+       restore-keys: Library-
+
+    - name: Build
       uses: game-ci/unity-builder@v4.2.3
       env:
        UNITY_EMAIL: ${{ secrets.UNITY_EMAIL }}
@@ -24,5 +31,11 @@ jobs:
        unityVersion: auto
        targetPlatform: StandaloneLinux64
        projectPath: unity_env
-       buildsPath: build
+       buildsPath: python_trainer/build
        buildName: selfDriving
+
+    - name: Upload build
+      uses: actions/upload-artifact@v4
+      with:
+       name: Build-LinuxStandalone
+       path: python_trainer/build
