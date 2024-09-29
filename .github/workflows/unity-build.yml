@@ -47,6 +47,4 @@ jobs:
        git add python_trainer/build
        git status
        git commit --verbose -m "CI: Added unity build"
-       git fetch origin
-       git rebase --strategy-option=theirs origin/${{ github.head_ref || github.ref_name }}
        git push origin ${{ github.head_ref || github.ref_name }}
