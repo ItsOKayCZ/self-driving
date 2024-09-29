@@ -29,11 +29,7 @@ writer = SummaryWriter()
 parser = argparse.ArgumentParser()
 parser.add_argument("-n", "--num-areas", type=int, default=1)
 parser.add_argument("-s", "--save-model", action="store_true")
-parser.add_argument(
-    "-e",
-    "--env",
-    default="./Python Trainer/builds/distance_reward_old_env/selfDriving.x86_64",
-)
+parser.add_argument("-e", "--env", default="./build/selfDriving.x86_64")
 parser.add_argument("-D", "--no-display", action="store_true")
 parser.add_argument("-t", "--time-scale", type=float, default=1.0)
 args = parser.parse_args()
