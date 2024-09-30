@@ -21,9 +21,6 @@ namespace Unity.MLAgents.Areas
 		// Slim: 10
 		public int roadSize = 15;
 		public RoadColor roadColor;
-		public int cameraWidth = 64;
-		public int cameraHeight = 64;
-		public RenderTexture renderTexture;
 
 		public void Awake()
 		{
@@ -37,17 +34,12 @@ namespace Unity.MLAgents.Areas
 		{
 			roadSize = DataChannel.getParameter("roadSize", 15);
 			roadColor = (RoadColor)DataChannel.getParameter("roadColor", 0);
-			cameraWidth = DataChannel.getParameter("cameraWidth", 64);
-			cameraHeight = DataChannel.getParameter("cameraHeight", 64);
 
 			ChangeCameraSettings();
 			AddAreas();
 		}
 
 		private void ChangeCameraSettings(){
-			renderTexture.width = cameraWidth;
-			renderTexture.height = cameraHeight;
-
 			if(roadColor == RoadColor.Amazon){
 				GameObject.Find("Car camera").GetComponent<Camera>().backgroundColor = new Color(0, 209f / 255f, 135f / 255f);
 			} else {

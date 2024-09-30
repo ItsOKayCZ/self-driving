@@ -701,8 +701,8 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 1}
   m_AnchorMax: {x: 0, y: 1}
-  m_AnchoredPosition: {x: 47.4, y: -39.7}
-  m_SizeDelta: {x: 100, y: 100}
+  m_AnchoredPosition: {x: 59, y: -39.7}
+  m_SizeDelta: {x: 160, y: 120}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &1490651526
 MonoBehaviour:
@@ -864,18 +864,6 @@ PrefabInstance:
       propertyPath: m_IsActive
       value: 1
       objectReference: {fileID: 0}
-    - target: {fileID: 6282186036672718647, guid: f02a9da96fe553f4193c7e617f9bb513, type: 3}
-      propertyPath: m_BackGroundColor.b
-      value: 0.5294118
-      objectReference: {fileID: 0}
-    - target: {fileID: 6282186036672718647, guid: f02a9da96fe553f4193c7e617f9bb513, type: 3}
-      propertyPath: m_BackGroundColor.g
-      value: 0.81960785
-      objectReference: {fileID: 0}
-    - target: {fileID: 6282186036672718647, guid: f02a9da96fe553f4193c7e617f9bb513, type: 3}
-      propertyPath: m_BackGroundColor.r
-      value: 0
-      objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects:
@@ -965,13 +953,10 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   baseArea: {fileID: 624273734}
-  numAreas: 2
+  numAreas: 1
   margin: 20
   roadSize: 15
   roadColor: 1
-  cameraWidth: 64
-  cameraHeight: 64
-  renderTexture: {fileID: 8400000, guid: 2c664c19210c0b648b40e3e9e752df8e, type: 2}
 --- !u!1660057539 &9223372036854775807
 SceneRoots:
   m_ObjectHideFlags: 0
