@@ -140,18 +140,12 @@ class Trainer:
         loss_sum = 0
         count = 0
 
-        for epoch in range(epochs):
+        for _ in range(epochs):
             for batch in dataloader:
                 # We run the training step with the recorded inputs and new Q value targets.
-                X, y = batch
-                # X = [X[0].view((-1, 1, 64, 64)), X[1].view((-1, 1))]
-                # y = y.view(-1, self.model.output_shape[1])
+                x, y = batch
 
-                vis_X = X[0].view((-1, 1, 64, 64))
-                nonvis_X = X[1].view((-1, 1))
-                X = (vis_X, nonvis_X)
-
-                y_hat = self.model(X)
+                y_hat = self.model(x)
                 loss = self.loss_fn(y_hat, y)
                 print("loss", loss)
                 # Backprop
@@ -160,6 +154,7 @@ class Trainer:
                 self.optim.step()
                 loss_sum += loss.item()
                 count += 1
+
         self.writer.add_scalar("Loss/Epoch", loss_sum / count, self.curr_epoch)
         self.curr_epoch += 1
 
@@ -169,7 +164,8 @@ class Trainer:
             (
                 # Vis observation
                 torch.randn((1,) + self.model.visual_input_shape),
-                torch.randn((1,) + self.model.nonvis_input_shape),  # Non vis observation
+                # Non vis observation
+                torch.randn((1,) + self.model.nonvis_input_shape),
             ),
             path,
             opset_version=9,
