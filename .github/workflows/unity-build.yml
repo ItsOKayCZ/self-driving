@@ -1,25 +1,40 @@
 name: Building unity project
 on:
  push:
-  branches: ["*"]
+  branches:
+   - "*"
+   - "!master"
+  paths:
+   - "unity_env/**"
+   
  pull_request:
-  branches: ["*"]
+  branches:
+   - "*"
+   - "!master"
+  paths:
+   - "unity_env/**"
 
 jobs:
  Build-unity-project:
   runs-on: ubuntu-latest
+ 
+  permissions:
+   contents: write
+  
   steps:
 
     - uses: actions/checkout@v4
       with:
+       ref: ${{ github.head_ref }}
        fetch-depth: 0
        lfs: true
 
     - uses: actions/cache@v4
       with:
        path: unity_env/Library
-       key: Library-LinuxStandalone
-       restore-keys: Library-
+       key: Library
+       restore-keys: Library
+
 
     - name: Build
       uses: game-ci/unity-builder@v4.2.3
@@ -40,13 +55,7 @@ jobs:
        name: Build-LinuxStandalone
        path: python_trainer/build
 
-    - name: Push build
-      run: |
-       git config --global user.name "github-actions[bot]"
-       git config --global user.email "41898282+github-actions[bot]@users.noreply.github.com"
-       git add python_trainer/build
-       git status
-       git commit --verbose -m "CI: Added unity build"
-       git fetch origin
-       git rebase --strategy-option=theirs origin/${{ github.head_ref || github.ref_name }}
-       git push origin ${{ github.head_ref || github.ref_name }}
+    - uses: stefanzweifel/git-auto-commit-action@v5
+      with:
+       commit_message: 'CI: Add build'
+       file_pattern: 'python_trainer/build/*'
