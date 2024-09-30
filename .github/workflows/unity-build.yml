@@ -1,9 +1,13 @@
 name: Building unity project
 on:
  push:
-  branches: ["*"]
+  branches:
+   - "*"
+   - "!master"
  pull_request:
-  branches: ["*"]
+  branches:
+   - "*"
+   - "!master"
 
 jobs:
  Build-unity-project:
@@ -39,3 +43,12 @@ jobs:
       with:
        name: Build-LinuxStandalone
        path: python_trainer/build
+
+    - name: Push build to branch
+      run: |
+       git config --global user.name "ItsOKayCZ"
+       git config --global user.email "itsokaycz@users.noreply.github.com"
+       git add python_trainer/build
+       git status
+       git commit --verbose -m "CI: Added unity build"
+       git push --verbose origin ${{ github.head_ref || github.ref_name }}
