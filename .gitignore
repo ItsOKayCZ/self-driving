@@ -87,6 +87,7 @@ __pycache__/
 
 # VS Code config
 .vscode/
+.vsconfig
 
 # Pycharm config
 .idea/
