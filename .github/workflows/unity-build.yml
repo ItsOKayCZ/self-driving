@@ -4,10 +4,15 @@ on:
   branches:
    - "*"
    - "!master"
+  paths:
+   - "unity_env/**"
+   
  pull_request:
   branches:
    - "*"
    - "!master"
+  paths:
+   - "unity_env/**"
 
 jobs:
  Build-unity-project:
