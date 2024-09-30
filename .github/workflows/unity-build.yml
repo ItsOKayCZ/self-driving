@@ -22,8 +22,8 @@ jobs:
     - uses: actions/cache@v4
       with:
        path: unity_env/Library
-       key: Library-LinuxStandalone
-       restore-keys: Library-
+       key: Library
+       restore-keys: Library
 
     - name: Build
       uses: game-ci/unity-builder@v4.2.3
@@ -43,12 +43,16 @@ jobs:
       with:
        name: Build-LinuxStandalone
        path: python_trainer/build
-
-    - name: Push build to branch
-      run: |
-       git config --global user.name "ItsOKayCZ"
-       git config --global user.email "itsokaycz@users.noreply.github.com"
-       git add python_trainer/build
-       git status
-       git commit --verbose -m "CI: Added unity build"
-       git push --verbose origin ${{ github.head_ref || github.ref_name }}
+ 
+    - name: Pushes to Repository
+      uses: tech-thinker/push-to-repo@main
+      env:
+        API_TOKEN_GITHUB: ${{ secrets.GH_PAT }}
+      with:
+        user-name: "github-actions[bot]"
+        user-email: "github-actions[bot]@users.noreply.github.com"
+        source-directory: "python_trainer/build"
+        destination-github-username: "ItsOKayCZ"
+        destination-repository-name: "self-driving"
+        commit-message: "CI: Added build"
+        target-branch: ${{ github.head_ref || github.ref_name }}
