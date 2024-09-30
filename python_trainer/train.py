@@ -32,12 +32,14 @@ parser.add_argument("-s", "--save-model", action="store_true")
 parser.add_argument("-e", "--env", default="./build/selfDriving.x86_64")
 parser.add_argument("-D", "--no-display", action="store_true")
 parser.add_argument("-t", "--time-scale", type=float, default=1.0)
+parser.add_argument("-i", "--interactive", action="store_true")
 args = parser.parse_args()
 NUM_AREAS = args.num_areas
 SAVE_MODEL = args.save_model
 ENV_PATH = args.env
 NO_DISPLAY = args.no_display
 TIME_SCALE = args.time_scale
+INTERACTIVE = args.interactive
 
 engine_channel = EngineConfigurationChannel()
 data_channel = DataChannel()
@@ -60,6 +62,9 @@ def relu(x):
 if __name__ == "__main__":
     # set up the environment
     env_location = ENV_PATH
+    if INTERACTIVE:
+        env_location = None
+        print("Waiting for unity environment")
     env = UnityEnvironment(
         file_name=env_location, num_areas=NUM_AREAS, side_channels=[engine_channel, data_channel]
     )

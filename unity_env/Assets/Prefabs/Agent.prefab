@@ -10864,9 +10864,9 @@ Rigidbody:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 6282186036658918038}
   serializedVersion: 4
-  m_Mass: 500
+  m_Mass: 200
   m_Drag: 0
-  m_AngularDrag: 0.05
+  m_AngularDrag: 1
   m_CenterOfMass: {x: 0, y: 0, z: 0}
   m_InertiaTensor: {x: 1, y: 1, z: 1}
   m_InertiaRotation: {x: 0, y: 0, z: 0, w: 1}
@@ -11015,8 +11015,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   m_Camera: {fileID: 6282186036672718647}
   m_SensorName: CameraSensor
-  m_Width: 64
-  m_Height: 64
+  m_Width: 160
+  m_Height: 120
   m_Grayscale: 1
   m_ObservationType: 0
   m_RuntimeCameraEnable: 0
