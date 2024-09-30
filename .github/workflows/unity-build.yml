@@ -12,10 +12,15 @@ on:
 jobs:
  Build-unity-project:
   runs-on: ubuntu-latest
+ 
+  permissions:
+   contents: write
+  
   steps:
 
     - uses: actions/checkout@v4
       with:
+       ref: ${{ github.head_ref }}
        fetch-depth: 0
        lfs: true
 
@@ -43,16 +48,8 @@ jobs:
       with:
        name: Build-LinuxStandalone
        path: python_trainer/build
- 
-    - name: Pushes to Repository
-      uses: tech-thinker/push-to-repo@main
-      env:
-        API_TOKEN_GITHUB: ${{ secrets.GH_PAT }}
+
+    - uses: stefanzweifel/git-auto-commit-action@v5
       with:
-        user-name: "github-actions[bot]"
-        user-email: "github-actions[bot]@users.noreply.github.com"
-        source-directory: "python_trainer/build"
-        destination-github-username: "ItsOKayCZ"
-        destination-repository-name: "self-driving"
-        commit-message: "CI: Added build"
-        target-branch: ${{ github.head_ref || github.ref_name }}
+       commit_message: 'CI: Add build'
+       file_pattern: 'python_trainer/build/*'
