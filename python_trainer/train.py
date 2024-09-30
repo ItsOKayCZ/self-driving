@@ -1,8 +1,6 @@
 import argparse
 import datetime
 import json
-import os
-import threading
 from pathlib import Path
 
 import torch
@@ -11,6 +9,7 @@ from keyboard_listener import KeyboardListener
 from mlagents_envs.environment import UnityEnvironment
 from mlagents_envs.side_channel.engine_configuration_channel import EngineConfigurationChannel
 from network import QNetwork
+from tensorboard import program
 
 # for TensorBoard
 from torch.utils.tensorboard import SummaryWriter
@@ -46,8 +45,11 @@ TIME_SCALE = args.time_scale
 INTERACTIVE = args.interactive
 
 
-def launch_tensor_board() -> None:
-    os.system("tensorboard --logdir=runs")
+def launch_tensor_board(logs_location: Path) -> None:
+    tb = program.TensorBoard()
+    tb.configure(argv=[None, "--logdir", str(logs_location)])
+    url = tb.launch()
+    print(f"Tensorflow listening on {url}")
 
 
 def print_env_info(env: UnityEnvironment) -> None:
@@ -64,9 +66,9 @@ def print_env_info(env: UnityEnvironment) -> None:
 
 if __name__ == "__main__":
     # Start TensorBoard
-    writer = SummaryWriter()
-    t = threading.Thread(target=launch_tensor_board, args=([]))
-    t.start()
+    log_location = Path(__file__).parent / "runs"
+    writer = SummaryWriter(log_location / datetime.datetime.now().strftime("%y-%m-%d %H%M%S"))
+    launch_tensor_board(log_location)
 
     # Start keyboard listener for saving
     listener = KeyboardListener()
@@ -78,7 +80,7 @@ if __name__ == "__main__":
     env_location = ENV_PATH
     if INTERACTIVE:
         env_location = None
-        print("Waiting for unity environment")
+        print("Waiting for unity environment")  # noqa: T201
     env = UnityEnvironment(
         file_name=env_location,
         num_areas=NUM_AREAS,

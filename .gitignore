@@ -77,10 +77,11 @@ unity_env/ml-agents-release_20
 unity_env/Timers/Main_timers.json
 unity_env/Assets/ML-Agents/
 
+**/selfDriving_Data/ML-Agents/
 # Automatically saved models
 python_trainer/models
 # Saved runs
-python_trainer/runs
+python_trainer/runs/
 
 # Python cache
 __pycache__/
