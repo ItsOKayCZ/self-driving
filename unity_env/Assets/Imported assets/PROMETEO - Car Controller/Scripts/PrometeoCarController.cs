@@ -36,9 +36,9 @@ public class PrometeoCarController : MonoBehaviour
 	  [Space(10)]
 	  [Range(100, 600)]
 	  public int brakeForce = 350; // The strength of the wheel brakes.
-	  [Range(1, 10)]
+	  [Range(0, 10)]
 	  public int decelerationMultiplier = 2; // How fast the car decelerates when the user is not using the throttle.
-	  [Range(1, 10)]
+	  [Range(0, 10)]
 	  public int handbrakeDriftMultiplier = 5; // How much grip the car loses when the user hit the handbrake.
 	public bool useControls = true;
 	  [Space(10)]

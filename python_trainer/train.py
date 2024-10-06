@@ -143,7 +143,6 @@ if __name__ == "__main__":
                 folder = Path(model_folder)
                 folder.mkdir(parents=True, exist_ok=True)
 
-                torch.save(qnet, model_folder / f"model-epoch-{epoch}.pkl")
                 trainer.save_model(model_folder / f"model-epoch-{epoch}.onnx")
                 listener.reset()
 

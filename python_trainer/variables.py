@@ -7,10 +7,10 @@ ENCODING_SIZE = 126  # size of the last dense NN layer (before output neurons)
 
 # Hyperparameters
 START_TEMPERATURE = 20
-REDUCE_TEMPERATURE = 1 / 15  # 0.75
+REDUCE_TEMPERATURE = 1 / 25
 DISCOUNT = 0.95  # devalues future reward
 LEARNING_RATE = 0.0005
-NUM_TRAINING_EXAMPLES = 2000
+NUM_TRAINING_EXAMPLES = 10000
 MAX_TRAINED_EPOCHS = 500
 
 # Reward
