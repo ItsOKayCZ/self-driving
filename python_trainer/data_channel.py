@@ -14,3 +14,8 @@ class DataChannel(SideChannel):
         msg = OutgoingMessage()
         msg.write_string(f"int|{key}|{val}")
         super().queue_message_to_send(msg)
+
+    def set_color_parameter(self, key: str, val: tuple[int, ...]) -> None:
+        msg = OutgoingMessage()
+        msg.write_string(f"color|{key}|{val[0]},{val[1]},{val[2]}")
+        super().queue_message_to_send(msg)

@@ -92,6 +92,9 @@ if __name__ == "__main__":
     # 0 -> Amazon road
     # 1 -> Black & white road
     data_channel.set_int_parameter("roadColor", 0)
+    # When the parameter 'backgroundColor' is not set, the default color is the color of the amazon color
+    # Values of the channels are <0, 255>
+    # data_channel.set_color_parameter('backgroundColor', (255, 0, 0))
     engine_channel.set_configuration_parameters(time_scale=TIME_SCALE)
     env.reset()
 
