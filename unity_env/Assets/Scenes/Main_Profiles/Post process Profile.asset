@@ -21,7 +21,7 @@ MonoBehaviour:
     value: 360
   sampleCount:
     overrideState: 1
-    value: 4
+    value: 32
 --- !u!114 &11400000
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -52,7 +52,7 @@ MonoBehaviour:
   active: 1
   enabled:
     overrideState: 1
-    value: 1
+    value: 0
   intensity:
     overrideState: 1
     value: 33.6
