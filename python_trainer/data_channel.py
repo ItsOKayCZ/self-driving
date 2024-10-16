@@ -19,3 +19,13 @@ class DataChannel(SideChannel):
         msg = OutgoingMessage()
         msg.write_string(f"color|{key}|{val[0]},{val[1]},{val[2]}")
         super().queue_message_to_send(msg)
+
+    def set_float_parameter(self, key: str, val: float) -> None:
+        msg = OutgoingMessage()
+        msg.write_string(f"float|{key}|{val}")
+        super().queue_message_to_send(msg)
+
+    def set_bool_parameter(self, key: str, val: bool) -> None:
+        msg = OutgoingMessage()
+        msg.write_string(f"int|{key}|{1 if val else 0}")
+        super().queue_message_to_send(msg)

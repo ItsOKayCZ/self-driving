@@ -86,12 +86,15 @@ if __name__ == "__main__":
         num_areas=NUM_AREAS,
         side_channels=[engine_channel, data_channel],
     )
+
     # Wide - 15
     # Slim - 10
     data_channel.set_int_parameter("roadSize", 15)
     # 0 -> Amazon road
     # 1 -> Black & white road
     data_channel.set_int_parameter("roadColor", 0)
+    data_channel.set_bool_parameter("randomBackgroundColor", True)
+    data_channel.set_float_parameter("changingBackgroundColorSpeed", 0.75)
     # When the parameter 'backgroundColor' is not set, the default color is the color of the amazon color
     # Values of the channels are <0, 255>
     # data_channel.set_color_parameter('backgroundColor', (255, 0, 0))

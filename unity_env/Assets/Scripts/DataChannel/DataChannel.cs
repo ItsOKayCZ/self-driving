@@ -8,11 +8,19 @@ public class DataChannel : SideChannel
 {
     private static Dictionary<string, int> intParameters = new Dictionary<string, int>();
     private static Dictionary<string, Color> colorParameters = new Dictionary<string, Color>();
+    private static Dictionary<string, float> floatParameters = new Dictionary<string, float>();
 
     public static int getParameter(string key, int defaultValue)
     {
         if (intParameters.ContainsKey(key))
             return intParameters[key];
+        return defaultValue;
+    }
+
+    public static float getParameter(string key, float defaultValue)
+    {
+        if (floatParameters.ContainsKey(key))
+            return floatParameters[key];
         return defaultValue;
     }
 
@@ -33,10 +41,6 @@ public class DataChannel : SideChannel
         string receivedString = msg.ReadString();
 
         string[] segments = receivedString.Split('|');
-        foreach (string seg in segments)
-        {
-            Debug.Log(seg);
-        }
         switch (segments[0])
         {
             case "int":
@@ -50,6 +54,10 @@ public class DataChannel : SideChannel
                     float.Parse(rgb[1]) / 255f,
                     float.Parse(rgb[2]) / 255f
                 );
+                break;
+
+            case "float":
+                floatParameters[segments[1]] = float.Parse(segments[2]);
                 break;
 
             default:
