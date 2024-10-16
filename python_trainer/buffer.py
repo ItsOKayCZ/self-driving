@@ -24,13 +24,9 @@ class Experience:
         self.predicted_values.append(predicted_values)
 
     def flip(self) -> "Experience":
-        new_observations = [
-            (np.flip(vis, 2), nonvis) for vis, nonvis in self.observations
-        ]
+        new_observations = [(np.flip(vis, 2), nonvis) for vis, nonvis in self.observations]
 
-        new_actions = [
-            mirrored_actions[x] if x is not None else None for x in self.actions
-        ]
+        new_actions = [mirrored_actions[x] if x is not None else None for x in self.actions]
 
         new_predicted_values = [np.flip(x, 0) for x in self.predicted_values]
 
@@ -59,9 +55,7 @@ class Experience:
             target_matrix = self.predicted_values[e].copy()
 
             # adjust
-            target_matrix[action_index] = (
-                reward + max(self.predicted_values[e + 1]) * DISCOUNT
-            )
+            target_matrix[action_index] = reward + max(self.predicted_values[e + 1]) * DISCOUNT
             states.append([arr.astype("float32") for arr in observation])
             targets.append(target_matrix.astype("float32"))
 

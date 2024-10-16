@@ -31,8 +31,7 @@ parser.add_argument("-s", "--save-model", action="store_true")
 parser.add_argument(
     "-e",
     "--env",
-    default=str(Path(__file__).parent / "build" /
-                "StandaloneLinux64" / "selfDriving"),
+    default=str(Path(__file__).parent / "build" / "StandaloneLinux64" / "selfDriving"),
 )
 parser.add_argument("-D", "--no-display", action="store_true")
 parser.add_argument("-t", "--time-scale", type=float, default=1.0)
@@ -68,8 +67,7 @@ def print_env_info(env: UnityEnvironment) -> None:
 if __name__ == "__main__":
     # Start TensorBoard
     log_location = Path(__file__).parent / "runs"
-    writer = SummaryWriter(
-        log_location / datetime.datetime.now().strftime("%y-%m-%d %H%M%S"))
+    writer = SummaryWriter(log_location / datetime.datetime.now().strftime("%y-%m-%d %H%M%S"))
     launch_tensor_board(log_location)
 
     # Start keyboard listener for saving
@@ -103,8 +101,7 @@ if __name__ == "__main__":
     engine_channel.set_configuration_parameters(time_scale=TIME_SCALE)
     env.reset()
 
-    device = torch.device(
-        "cuda" if torch.cuda.is_available() and False else "cpu")
+    device = torch.device("cuda" if torch.cuda.is_available() and False else "cpu")
     print(f"Running on {device}")  # noqa: T201
     print_env_info(env)
 
@@ -112,8 +109,7 @@ if __name__ == "__main__":
     temperature = START_TEMPERATURE
     temperature_red = REDUCE_TEMPERATURE
 
-    model_folder = Path(MODEL_PATH) / \
-        datetime.datetime.now().strftime("%y-%m-%d %H%M%S")
+    model_folder = Path(MODEL_PATH) / datetime.datetime.now().strftime("%y-%m-%d %H%M%S")
 
     results = []
     try:
@@ -153,8 +149,7 @@ if __name__ == "__main__":
                 folder = Path(model_folder)
                 folder.mkdir(parents=True, exist_ok=True)
 
-                trainer.save_model(
-                    str(model_folder / f"model-epoch-{epoch}.onnx"))
+                trainer.save_model(str(model_folder / f"model-epoch-{epoch}.onnx"))
                 listener.reset()
 
     except KeyboardInterrupt:
