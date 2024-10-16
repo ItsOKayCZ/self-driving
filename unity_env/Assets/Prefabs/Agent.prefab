@@ -10902,6 +10902,7 @@ MonoBehaviour:
   parentCheckpoint: {fileID: 0}
   currentCheckpoint: 0
   carController: {fileID: 6282186034757043643}
+  carCamera: {fileID: 0}
   rBody: {fileID: -1987677041437309144}
   trackGenerator: {fileID: 0}
 --- !u!114 &6282186034757043643
@@ -11046,7 +11047,7 @@ GameObject:
   - component: {fileID: 6282186036672718647}
   m_Layer: 0
   m_Name: Car camera
-  m_TagString: Untagged
+  m_TagString: CarCamera
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0

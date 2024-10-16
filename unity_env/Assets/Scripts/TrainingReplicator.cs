@@ -1,4 +1,4 @@
-using Unity.MLAgents.Sensors;
+using Unity.VisualScripting.Dependencies.Sqlite;
 using UnityEngine;
 
 namespace Unity.MLAgents.Areas
@@ -10,6 +10,8 @@ namespace Unity.MLAgents.Areas
         public int numAreas = 1;
         public float margin = 20;
 
+        private GameObject[] carCameras;
+
         public enum RoadColor
         {
             Amazon,
@@ -20,7 +22,21 @@ namespace Unity.MLAgents.Areas
         // Slim: 10
         public int roadSize = 15;
         public RoadColor roadColor;
+
         public Color backgroundColor;
+
+        public bool randomBackgroundColor;
+        private float changingColorSpeed;
+        private bool displayRandomColorInMain = false;
+
+        struct HSV
+        {
+            public float hue;
+            public float saturation;
+            public float value;
+        };
+
+        private HSV hsvColor;
 
         public void Awake()
         {
@@ -34,35 +50,60 @@ namespace Unity.MLAgents.Areas
         {
             roadSize = DataChannel.getParameter("roadSize", 15);
             roadColor = (RoadColor)DataChannel.getParameter("roadColor", 0);
-            backgroundColor = DataChannel.getParemeter(
-                "backgroundColor",
-                new Color(0, 0.819607843f, 0.529411765f)
+            randomBackgroundColor = System.Convert.ToBoolean(
+                DataChannel.getParameter("randomBackgroundColor", 0)
             );
 
-            ChangeCameraSettings();
+            if (!randomBackgroundColor)
+                backgroundColor = DataChannel.getParemeter(
+                    "backgroundColor",
+                    new Color(0, 0.819607843f, 0.529411765f)
+                );
+            else
+            {
+                hsvColor.hue = Random.Range(0f, 1f);
+                hsvColor.saturation = 0.25f;
+                hsvColor.value = 1f;
+                backgroundColor = Color.HSVToRGB(hsvColor.hue, .5f, hsvColor.value);
+
+                changingColorSpeed = DataChannel.getParameter(
+                    "changingBackgroundColorSpeed",
+                    0.75f
+                );
+            }
+
             AddAreas();
+
+            carCameras = GameObject.FindGameObjectsWithTag("CarCamera");
+
+            ChangeCameraBackgroundColor();
         }
 
-        private void ChangeCameraSettings()
+        void Update()
         {
-            GameObject.Find("Car camera").GetComponent<Camera>().backgroundColor = backgroundColor;
-            GameObject.Find("Camera").GetComponent<Camera>().backgroundColor = backgroundColor;
-            // if (roadColor == RoadColor.Amazon)
-            // {
-            //     GameObject.Find("Car camera").GetComponent<Camera>().backgroundColor = new Color(
-            //         0,
-            //         209f / 255f,
-            //         135f / 255f
-            //     );
-            // }
-            // else
-            // {
-            //     GameObject.Find("Car camera").GetComponent<Camera>().backgroundColor = new Color(
-            //         1f,
-            //         1f,
-            //         1f
-            //     );
-            // }
+            if (randomBackgroundColor)
+            {
+                if (Input.GetKeyDown(KeyCode.Escape))
+                    displayRandomColorInMain = !displayRandomColorInMain;
+
+                backgroundColor = Color.HSVToRGB(
+                    (hsvColor.hue + Time.time * changingColorSpeed) % 1f,
+                    hsvColor.saturation + (Mathf.Sin(Time.time) * 0.25f + 0.25f),
+                    hsvColor.value
+                );
+                ChangeCameraBackgroundColor();
+            }
+        }
+
+        private void ChangeCameraBackgroundColor()
+        {
+            foreach (GameObject c in carCameras)
+            {
+                c.GetComponent<Camera>().backgroundColor = backgroundColor;
+            }
+
+            if (displayRandomColorInMain || !randomBackgroundColor)
+                GameObject.Find("Camera").GetComponent<Camera>().backgroundColor = backgroundColor;
         }
 
         private void AddAreas()

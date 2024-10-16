@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using Unity.MLAgents;
 using Unity.MLAgents.Actuators;
@@ -23,6 +24,8 @@ public class AgentCar : Agent
 
     public PrometeoCarController carController;
 
+    public Camera carCamera;
+
     // public CarController carController;
     public Rigidbody rBody;
     public TrackGenerator trackGenerator;
@@ -34,8 +37,6 @@ public class AgentCar : Agent
 
     public override void OnEpisodeBegin()
     {
-        Debug.Log("New episode");
-
         pauseLearning = true;
         trackGenerator.ResetTrack();
         pauseLearning = false;
@@ -131,7 +132,6 @@ public class AgentCar : Agent
 
         if (carController.getAmountOfWheelsOnRoad() <= 2)
         {
-            Debug.Log("Tire on terrain. Resetting");
             SetReward(-10f);
             EndEpisode();
         }
