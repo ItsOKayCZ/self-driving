@@ -167,3 +167,5 @@ dependencies:
       - typing-extensions==4.8.0
       - urllib3==2.0.7
       - werkzeug==3.0.1
+      - scipy==1.10.1
+
