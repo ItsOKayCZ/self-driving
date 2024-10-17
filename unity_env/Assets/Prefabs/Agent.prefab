@@ -11092,7 +11092,7 @@ MonoBehaviour:
   m_Height: 120
   m_Grayscale: 1
   m_ObservationType: 0
-  m_RuntimeCameraEnable: 1
+  m_RuntimeCameraEnable: 0
   m_ObservationStacks: 1
   m_Compression: 1
 --- !u!114 &4633599328643637399
