@@ -101,7 +101,7 @@ if __name__ == "__main__":
     engine_channel.set_configuration_parameters(time_scale=TIME_SCALE)
     env.reset()
 
-    device = torch.device("cuda" if torch.cuda.is_available() and False else "cpu")
+    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     print(f"Running on {device}")  # noqa: T201
     print_env_info(env)
 
