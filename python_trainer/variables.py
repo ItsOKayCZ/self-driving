@@ -1,7 +1,7 @@
 MODEL_PATH = "./models"
 
 # QNet parameters
-VISUAL_INPUT_SHAPE = (1, 90, 160)
+VISUAL_INPUT_SHAPE = (1, 100, 160)
 NONVISUAL_INPUT_SHAPE = (1,)
 ENCODING_SIZE = 126  # size of the last dense NN layer (before output neurons)
 
