@@ -15,7 +15,6 @@ from tensorboard import program
 from torch.utils.tensorboard.writer import SummaryWriter
 from trainer import Trainer
 from variables import (
-    ENCODING_SIZE,
     MAX_TRAINED_EPOCHS,
     MODEL_PATH,
     NONVISUAL_INPUT_SHAPE,
@@ -116,7 +115,6 @@ if __name__ == "__main__":
         qnet = QNetwork(
             visual_input_shape=VISUAL_INPUT_SHAPE,
             nonvis_input_shape=NONVISUAL_INPUT_SHAPE,
-            encoding_size=ENCODING_SIZE,
             device=device,
         )
         trainer = Trainer(

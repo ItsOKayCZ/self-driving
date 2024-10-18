@@ -16,41 +16,77 @@ mirrored_actions = [2, 1, 0]
 
 
 class QNetwork(torch.nn.Module):
-    def __init__(self, visual_input_shape, nonvis_input_shape, encoding_size, device):
-        super(QNetwork, self).__init__()
-        height = visual_input_shape[1]
-        width = visual_input_shape[2]
-        initial_channels = visual_input_shape[0]
+    def __init__(self, visual_input_shape, nonvis_input_shape, device):
+        super().__init__()
 
+        self.output_shape = (1, len(action_options))
+        self.visual_input_shape = visual_input_shape
+        self.nonvis_input_shape = nonvis_input_shape
         self.device = device
 
+        conv_1_args = {"kernels": 16, "kernel_size": 5, "stride": 1}
+        conv_2_args = {"kernels": 32, "kernel_size": 3, "stride": 1}
+        nonvis_dense_size = 8
+        encoding_size = 126
+
+        self.create_layers(conv_1_args, conv_2_args, nonvis_dense_size, encoding_size)
+
+    def create_layers(
+        self,
+        conv_1_args: dict[str, int],
+        conv_2_args: dict[str, int],
+        nonvis_dense_size: int,
+        encoding_size: int,
+    ) -> None:
+        height = self.visual_input_shape[1]
+        width = self.visual_input_shape[2]
+        initial_channels = self.visual_input_shape[0]
+
+        # calculating required size of the dense layer based on the conv layers
+        conv_1_hw = self.conv_output_shape(
+            (height, width),
+            conv_1_args["kernel_size"],
+            conv_1_args["stride"],
+        )
+        conv_2_hw = self.conv_output_shape(
+            conv_1_hw,
+            conv_2_args["kernel_size"],
+            conv_2_args["stride"],
+        )
+
+        self.final_flat_size = conv_2_hw[0] * conv_2_hw[1] * conv_2_args["kernels"]
+
         with torch.device(self.device):
-            self.output_shape = (1, len(action_options))
-            self.visual_input_shape = visual_input_shape
-            self.nonvis_input_shape = nonvis_input_shape
-            # calculating required size of the dense layer based on the conv layers
-            conv_1_hw = self.conv_output_shape((height, width), 5, 1)
-            conv_2_hw = self.conv_output_shape(conv_1_hw, 3, 1)
-            self.final_flat = conv_2_hw[0] * conv_2_hw[1] * 32
             # layers
-            self.conv1 = torch.nn.Conv2d(initial_channels, 16, 5)
-            self.conv2 = torch.nn.Conv2d(16, 32, 3)
-            self.nonvis_dense = torch.nn.Linear(nonvis_input_shape[0], 8)
-            self.dense1 = torch.nn.Linear(self.final_flat + 8, encoding_size)
-            self.dense2 = torch.nn.Linear(encoding_size, self.output_shape[1])
+            self.conv_1 = torch.nn.Conv2d(
+                initial_channels,
+                conv_1_args["kernels"],
+                conv_1_args["kernel_size"],
+                stride=conv_1_args["stride"],
+            )
+
+            self.conv_2 = torch.nn.Conv2d(
+                conv_1_args["kernels"],
+                conv_2_args["kernels"],
+                conv_2_args["kernel_size"],
+                stride=conv_2_args["stride"],
+            )
+            self.nonvis_dense = torch.nn.Linear(self.nonvis_input_shape[0], nonvis_dense_size)
+            self.dense_1 = torch.nn.Linear(self.final_flat_size + nonvis_dense_size, encoding_size)
+            self.dense_2 = torch.nn.Linear(encoding_size, self.output_shape[1])
 
     def forward(self, observation: Tuple):
         visual_obs, nonvis_obs = observation
         nonvis_obs = nonvis_obs.view((-1, self.nonvis_input_shape[0]))
 
-        conv_1 = torch.relu(self.conv1(visual_obs))
-        conv_2 = torch.relu(self.conv2(conv_1))
+        conv_1 = torch.relu(self.conv_1(visual_obs))
+        conv_2 = torch.relu(self.conv_2(conv_1))
         nonvis_dense = torch.relu(self.nonvis_dense(nonvis_obs))
-        hidden = conv_2.reshape([-1, self.final_flat])
+        hidden = conv_2.reshape([-1, self.final_flat_size])
         hidden = torch.concat([hidden, nonvis_dense], dim=1)
-        hidden = self.dense1(hidden)
+        hidden = self.dense_1(hidden)
         hidden = torch.relu(hidden)
-        output = self.dense2(hidden)
+        output = self.dense_2(hidden)
         return output
 
     def get_actions(self, observation, temperature, use_tensor=False):
