@@ -303,14 +303,14 @@ MonoBehaviour:
     useClippedPercent: 0
     keys: []
   _clipFromSample:
-    position: {x: 0, y: 0, z: -10}
+    position: {x: 0, y: 0.01, z: -10}
     up: {x: 0, y: 1, z: 0}
     forward: {x: 0, y: 0, z: 1}
     color: {r: 1, g: 1, b: 1, a: 1}
     size: 1
     percent: 0
   _clipToSample:
-    position: {x: -10, y: 0, z: 0}
+    position: {x: -10, y: 0.01, z: 0}
     up: {x: 0, y: 1, z: 0}
     forward: {x: -1, y: 0, z: 0}
     color: {r: 1, g: 1, b: 1, a: 1}
@@ -336,8 +336,8 @@ MonoBehaviour:
   _rotation: 0
   _flipFaces: 0
   _doubleSided: 0
-  _uvMode: 0
-  _uvScale: {x: 1, y: 5}
+  _uvMode: 3
+  _uvScale: {x: 1, y: 0.2}
   _uvOffset: {x: 0, y: 0}
   _uvRotation: 0
   _meshIndexFormat: 0
