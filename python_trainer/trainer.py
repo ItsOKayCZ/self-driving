@@ -1,5 +1,6 @@
 import copy
 
+import cv2
 import numpy as np
 import torch
 import torch.onnx
@@ -68,6 +69,17 @@ class Trainer:
 
         if self.writer is not None:
             self.writer.add_image("Sample image", sample_image)
+
+            # Turn to True, if you want to see all of the images from the epoch
+            if False:
+                index = 0
+                for buffer in self.memory.buffer:
+                    for sample in buffer.observations:
+                        gray_image = cv2.cvtColor(
+                            np.resize(sample[0], (100, 160, 1)) * 255.0, cv2.COLOR_GRAY2RGB
+                        )
+                        cv2.imwrite(f"/tmp/{self.curr_epoch}-{index}.jpg", gray_image)
+                        index += 1
 
             # Add text
             steer = ""
