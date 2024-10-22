@@ -28,6 +28,8 @@ namespace Unity.MLAgents.Areas
         private float changingColorSpeed;
         private bool displayRandomColorInMain = false;
 
+        public Material[] roadMaterials;
+
         struct HSV
         {
             public float hue;
@@ -71,6 +73,8 @@ namespace Unity.MLAgents.Areas
                 );
             }
 
+            SetMaterial();
+
             AddAreas();
 
             carCameras = GameObject.FindGameObjectsWithTag("CarCamera");
@@ -103,6 +107,20 @@ namespace Unity.MLAgents.Areas
 
             if (displayRandomColorInMain || !randomBackgroundColor)
                 GameObject.Find("Camera").GetComponent<Camera>().backgroundColor = backgroundColor;
+        }
+
+        void SetMaterial()
+        {
+            foreach (var mat in roadMaterials)
+            {
+                mat.SetFloat(
+                    "_ReflectionStrength",
+                    DataChannel.getParameter("reflectionStrength", 1f)
+                );
+                mat.SetFloat("_NoiseScaleX", DataChannel.getParameter("noiseScaleX", 0.4f));
+                mat.SetFloat("_NoiseScaleY", DataChannel.getParameter("noiseScaleY", 0.05f));
+                mat.SetFloat("_Speed", DataChannel.getParameter("noiseSpeed", 0.3f));
+            }
         }
 
         private void AddAreas()

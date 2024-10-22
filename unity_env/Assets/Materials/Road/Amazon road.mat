@@ -85,7 +85,7 @@ Material:
     - _NoiseScaleY: 0.05
     - _OcclusionStrength: 1
     - _Parallax: 0.02
-    - _ReflectionStrength: 1
+    - _ReflectionStrength: 0
     - _SetTexture: 1
     - _Smoothness: 0
     - _SmoothnessTextureChannel: 1

@@ -723,6 +723,9 @@ MonoBehaviour:
   roadColor: 1
   backgroundColor: {r: 0, g: 0, b: 0, a: 0}
   randomBackgroundColor: 0
+  roadMaterials:
+  - {fileID: 2100000, guid: d63a402699f7f904c8bad171fdc44dca, type: 2}
+  - {fileID: 2100000, guid: 39a14f8831164d0b6b9637adb0cdbddf, type: 2}
 --- !u!1001 &7475695033151031654
 PrefabInstance:
   m_ObjectHideFlags: 0
