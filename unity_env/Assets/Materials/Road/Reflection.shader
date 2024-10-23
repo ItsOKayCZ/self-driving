@@ -3,9 +3,13 @@ Shader "Custom/Reflection"
     Properties
     {
         _MainTex ("Albedo (RGB)", 2D) = "white" {}
+        [Maincolor] _MainColor ("Main color", Color) = (1., 1., 0., 1.)
+        _SetTexture ("Texture set", Float) = 0.
         _ReflectionStrength ("Reflection strength", Float) = 1.0
-        _NoiseScale ("Noise scale", Float) = 1.0
+        _NoiseScaleX ("Noise scale X", Float) = 1.0
+        _NoiseScaleY ("Noise scale Y", Float) = 1.0
         _Speed ("Noise speed", Range(0, 1)) = 0.5
+        _ReflectionColor ("Reflection color", Color) = (1., 1., 1., 1.)
     }
     SubShader
     {
@@ -20,9 +24,13 @@ Shader "Custom/Reflection"
         #pragma target 3.0
 
         sampler2D _MainTex;
+        float4 _MainColor;
         float _ReflectionStrength;
-        float _NoiseScale;
+        float _NoiseScaleX;
+        float _NoiseScaleY;
         float _Speed;
+        float4 _ReflectionColor;
+        float _SetTexture;
 
         struct Input
         {
@@ -166,12 +174,15 @@ Shader "Custom/Reflection"
         void surf (Input IN, inout SurfaceOutputStandard o)
         {
             // float2 noiseInput = IN.uv_MainTex * _NoiseScale;
-            float2 noiseInput = IN.worldPos.xz * _NoiseScale;
+            float2 noiseInput = IN.worldPos.xz;
+            noiseInput.x *= _NoiseScaleX;
+            noiseInput.y *= _NoiseScaleY;
             float noiseValue = clamp(ClassicNoise(float3(noiseInput.x, noiseInput.y, _Time.y * _Speed)), 0.0, 1.0) * _ReflectionStrength;
             // float noiseValue = ClassicNoise(noiseInput);
 
-            fixed4 albedo = tex2D(_MainTex, IN.uv_MainTex);
-            o.Albedo = albedo + noiseValue;
+            fixed4 albedo = tex2D(_MainTex, IN.uv_MainTex) * _SetTexture + _MainColor * (1. - _SetTexture);
+
+            o.Albedo = albedo + noiseValue * _ReflectionColor.rgb;
         }
         ENDCG
     }
