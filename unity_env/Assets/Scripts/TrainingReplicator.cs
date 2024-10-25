@@ -82,20 +82,6 @@ namespace Unity.MLAgents.Areas
             ChangeCameraBackgroundColor();
         }
 
-        void SetMaterial()
-        {
-            foreach (var mat in roadMaterials)
-            {
-                mat.SetFloat(
-                    "_ReflectionStrength",
-                    DataChannel.getParameter("reflectionStrength", 1f)
-                );
-                mat.SetFloat("_NoiseScaleX", DataChannel.getParameter("noiseScaleX", 0.4f));
-                mat.SetFloat("_NoiseScaleY", DataChannel.getParameter("noiseScaleY", 0.05f));
-                mat.SetFloat("_Speed", DataChannel.getParameter("noiseSpeed", 0.3f));
-            }
-        }
-
         void Update()
         {
             if (randomBackgroundColor)
@@ -129,11 +115,11 @@ namespace Unity.MLAgents.Areas
             {
                 mat.SetFloat(
                     "_ReflectionStrength",
-                    DataChannel.getParameter("reflectionStrength", 1f)
+                    DataChannel.getParameter("reflectionStrength", 0.4f)
                 );
-                mat.SetFloat("_NoiseScaleX", DataChannel.getParameter("noiseScaleX", 0.4f));
+                mat.SetFloat("_NoiseScaleX", DataChannel.getParameter("noiseScaleX", 0.04f));
                 mat.SetFloat("_NoiseScaleY", DataChannel.getParameter("noiseScaleY", 0.05f));
-                mat.SetFloat("_Speed", DataChannel.getParameter("noiseSpeed", 0.3f));
+                mat.SetFloat("_Speed", DataChannel.getParameter("noiseSpeed", 0.2f));
             }
         }
 

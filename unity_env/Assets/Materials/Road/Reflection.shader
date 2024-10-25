@@ -5,6 +5,7 @@ Shader "Custom/Reflection"
         _MainTex ("Albedo (RGB)", 2D) = "white" {}
         [Maincolor] _MainColor ("Main color", Color) = (1., 1., 0., 1.)
         _SetTexture ("Texture set", Float) = 0.
+        _NoiseTexture ("Noise texture", 2D) = "white" {}
         _ReflectionStrength ("Reflection strength", Float) = 1.0
         _NoiseScaleX ("Noise scale X", Float) = 1.0
         _NoiseScaleY ("Noise scale Y", Float) = 1.0
@@ -24,6 +25,7 @@ Shader "Custom/Reflection"
         #pragma target 3.0
 
         sampler2D _MainTex;
+        sampler2D _NoiseTexture;
         float4 _MainColor;
         float _ReflectionStrength;
         float _NoiseScaleX;
@@ -174,11 +176,26 @@ Shader "Custom/Reflection"
         void surf (Input IN, inout SurfaceOutputStandard o)
         {
             // float2 noiseInput = IN.uv_MainTex * _NoiseScale;
-            float2 noiseInput = IN.worldPos.xz;
-            noiseInput.x *= _NoiseScaleX;
-            noiseInput.y *= _NoiseScaleY;
-            float noiseValue = clamp(ClassicNoise(float3(noiseInput.x, noiseInput.y, _Time.y * _Speed)), 0.0, 1.0) * _ReflectionStrength;
-            // float noiseValue = ClassicNoise(noiseInput);
+            // float2 noiseInput = IN.worldPos.xz;
+            // noiseInput.x *= _NoiseScaleX;
+            // noiseInput.y *= _NoiseScaleY;
+            // float noiseValue = clamp(ClassicNoise(float3(noiseInput.x, noiseInput.y, _Time.y * _Speed)), 0.0, 1.0) * _ReflectionStrength;
+
+            // float2 noiseInput2 = IN.worldPos.xz * .1;
+            // noiseInput2.x *= 1.5;
+            // noiseInput2.y *= .01;
+            // float noiseValue2 = clamp(ClassicNoise(float3(noiseInput2.x, noiseInput2.y, _Time.y * _Speed * 2.)), 0., 1.) * 1.;
+
+            // fixed4 albedo = tex2D(_MainTex, IN.uv_MainTex) * _SetTexture + _MainColor * (1. - _SetTexture);
+
+            // o.Albedo = albedo + clamp(noiseValue + noiseValue2, 0., 1.) * _ReflectionColor.rgb;
+
+            float2 noiseInput = IN.worldPos.xz * .02;
+            noiseInput.x += -_Time;
+            noiseInput.y += _Time;
+            noiseInput.x *= .3;
+            noiseInput.y *= .05;
+            float noiseValue = clamp((tex2D(_NoiseTexture, noiseInput) - 0.1) * 2., 0., 1.);
 
             fixed4 albedo = tex2D(_MainTex, IN.uv_MainTex) * _SetTexture + _MainColor * (1. - _SetTexture);
 
