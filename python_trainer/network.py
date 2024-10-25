@@ -25,7 +25,7 @@ class QNetwork(torch.nn.Module):
         self.device = device
 
         conv_1_args = {"kernels": 16, "kernel_size": 5, "stride": 1}
-        conv_2_args = {"kernels": 32, "kernel_size": 3, "stride": 1}
+        conv_2_args = {"kernels": 8, "kernel_size": 3, "stride": 1}
         nonvis_dense_size = 8
         encoding_size = 126
 

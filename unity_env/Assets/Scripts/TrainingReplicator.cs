@@ -123,6 +123,20 @@ namespace Unity.MLAgents.Areas
                 GameObject.Find("Camera").GetComponent<Camera>().backgroundColor = backgroundColor;
         }
 
+        void SetMaterial()
+        {
+            foreach (var mat in roadMaterials)
+            {
+                mat.SetFloat(
+                    "_ReflectionStrength",
+                    DataChannel.getParameter("reflectionStrength", 1f)
+                );
+                mat.SetFloat("_NoiseScaleX", DataChannel.getParameter("noiseScaleX", 0.4f));
+                mat.SetFloat("_NoiseScaleY", DataChannel.getParameter("noiseScaleY", 0.05f));
+                mat.SetFloat("_Speed", DataChannel.getParameter("noiseSpeed", 0.3f));
+            }
+        }
+
         private void AddAreas()
         {
             for (int i = 0; i < numAreas; i++)
