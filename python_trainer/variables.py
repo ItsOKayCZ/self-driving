@@ -13,8 +13,9 @@ NUM_TRAINING_EXAMPLES = 5000
 MAX_TRAINED_EPOCHS = 500
 
 # Reward
-# will be added to the reward for sticking with the same action
-REWARD_SAME_ACTION = 0.0
+REWARD_MAX = 5  # aprox. the maximum reward it will get for staying on the line
+STEERING_DISCOUNT = 0.8  # multiplier for steering
+
 
 # Image preprocessing
 BLUR_INTENSITY = 2

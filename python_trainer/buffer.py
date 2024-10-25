@@ -1,7 +1,7 @@
 import numpy as np
 from network import mirrored_actions
 from torch.utils.data import Dataset
-from variables import DISCOUNT, REWARD_SAME_ACTION
+from variables import DISCOUNT, STEERING_DISCOUNT
 
 
 class Experience:
@@ -47,8 +47,8 @@ class Experience:
             action_index = self.actions[e]
             reward = self.rewards[e]
 
-            if e != 0 and self.actions[e] == self.actions[e - 1]:
-                reward += REWARD_SAME_ACTION
+            if action_index != 1:  # is steering
+                reward *= STEERING_DISCOUNT
 
             # we take the matrix of predicted values and for the actions
             # we had taken adjust the value by the reward and the value of the next state

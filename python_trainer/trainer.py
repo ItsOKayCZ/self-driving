@@ -15,6 +15,7 @@ from variables import (
     LEARNING_RATE,
     NOISE_INTESITY,
     NOISE_OPACITY,
+    REWARD_MAX,
     VISUAL_INPUT_SHAPE,
 )
 from wrapper_net import WrapperNet
@@ -206,7 +207,14 @@ class Trainer:
             cls.image_preprocessing(step.obs[0]),
             step.obs[1],
         )
-        reward = step.reward
+
+        # step.reward is a number from 0 to 1 representing distance from center of the road
+
+        reward = (  # sigmoid function for reward
+            REWARD_MAX / (1 + np.exp((-10 * step.reward) + 4))
+            if 0 <= step.reward <= 1
+            else step.reward
+        )
 
         return state_obs, reward
 
