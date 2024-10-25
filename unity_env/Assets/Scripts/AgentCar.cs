@@ -72,6 +72,7 @@ public class AgentCar : Agent
             new Vector2(splineSample.position.x, splineSample.position.z)
         );
         float val = 1f - (dist / 6.34f);
+        Debug.Log(val);
 
         return val;
     }

@@ -96,6 +96,7 @@ public class TrackGenerator : MonoBehaviour
             return;
         }
 
+        RemoveCheckpoints();
         foreach (TrackPiece trackPiece in track)
         {
             Destroy(trackPiece.go);
@@ -117,6 +118,11 @@ public class TrackGenerator : MonoBehaviour
             GenerateTrackPiece();
 
         currentTry = 1;
+    }
+
+    void RemoveCheckpoints()
+    {
+        checkpoints.Clear();
     }
 
     void GenerateTrackPiece()
