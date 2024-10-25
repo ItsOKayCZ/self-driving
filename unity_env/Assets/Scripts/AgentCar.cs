@@ -1,5 +1,7 @@
 using System;
 using System.Collections.Generic;
+using System.Net.Http.Headers;
+using Dreamteck.Splines;
 using Unity.MLAgents;
 using Unity.MLAgents.Actuators;
 using Unity.MLAgents.Sensors;
@@ -8,7 +10,7 @@ using UnityEngine;
 public class AgentCar : Agent
 {
     public GameObject parentCheckpoint;
-    List<GameObject> checkpoints
+    List<SplineComputer> checkpoints
     {
         get { return trackGenerator.checkpoints; }
     }
@@ -52,18 +54,7 @@ public class AgentCar : Agent
 
     public override void CollectObservations(VectorSensor sensor)
     {
-        // sensor.AddObservation(carController.carSpeed);
-        // sensor.AddObservation(carController.currentSteerAngle);
         sensor.AddObservation(carController.steeringAxis);
-
-        // sensor.AddObservation(calcDistanceToNextCheckpoint());
-    }
-
-    private GameObject getNextCheckpoint()
-    {
-        if (currentCheckpoint + 1 >= checkpoints.Count)
-            return checkpoints[0];
-        return checkpoints[currentCheckpoint + 1];
     }
 
     private float calcDistance(Vector3 pos1, Vector3 pos2)
@@ -71,38 +62,36 @@ public class AgentCar : Agent
         return Vector2.Distance(new Vector2(pos1.x, pos1.z), new Vector2(pos2.x, pos2.z));
     }
 
-    private float calcDistanceToNextCheckpoint()
+    private float calcDistanceToCenter()
     {
-        if (checkpoints.Count == 0)
-            return -1;
+        SplineSample splineSample = new SplineSample();
+        checkpoints[currentCheckpoint].Project(transform.position, ref splineSample);
 
-        GameObject nextCheckpoint = getNextCheckpoint();
-        if (nextCheckpoint == null)
-            return -1;
+        float dist = Vector2.Distance(
+            new Vector2(transform.position.x, transform.position.z),
+            new Vector2(splineSample.position.x, splineSample.position.z)
+        );
+        float val = 1f - (dist / 6.34f);
 
-        return calcDistance(nextCheckpoint.transform.position, transform.position);
+        return val;
     }
 
-    private float getDrivenDistance()
+    private bool isOverLastPoint()
     {
-        float distance = 0f;
+        int lastIndex = checkpoints[currentCheckpoint].pointCount - 1;
+        Vector3 piecePos = trackGenerator.track[currentCheckpoint].go.transform.position;
+        Vector3 endLinePos = checkpoints[currentCheckpoint].GetPoint(lastIndex).position;
 
-        for (int i = 0; i < currentCheckpoint; i++)
-        {
-            distance += calcDistance(
-                checkpoints[i].transform.position,
-                checkpoints[i + 1].transform.position
-            );
-        }
+        Vector2 startPos = new Vector2(piecePos.x, piecePos.z);
+        Vector2 endPos = new Vector2(endLinePos.x, endLinePos.z);
+        Vector2 agentPos = new Vector3(transform.position.x, transform.position.z);
 
-        distance += calcDistance(
-            checkpoints[checkpoints.Count - (checkpoints.Count - currentCheckpoint)]
-                .transform
-                .position,
-            transform.position
-        );
+        Vector2 pieceDir = endPos - startPos;
+        Vector2 agentEndDir = endPos - agentPos;
 
-        return distance;
+        float dot = Vector2.Dot(pieceDir, agentEndDir);
+
+        return dot <= 2f;
     }
 
     void TriggerAction(ActionBuffers actions)
@@ -122,10 +111,10 @@ public class AgentCar : Agent
         if (pauseLearning)
             return;
 
-        float distanceToCheckpoint = calcDistanceToNextCheckpoint();
-        if (distanceToCheckpoint != -1 && distanceToCheckpoint < 7.5f)
+        SetReward(calcDistanceToCenter());
+
+        if (isOverLastPoint())
         {
-            AddReward(5f);
             currentCheckpoint++;
             trackGenerator.UpdateTrack(currentCheckpoint);
         }
@@ -136,19 +125,7 @@ public class AgentCar : Agent
             EndEpisode();
         }
 
-        // SetReward(carController.getAmountOfWheelsOnRoad() * 0.0001f);
-        // SetReward(4 - carController.getAmountOfWheelsOnRoad() * -0.1f);
-
-        if (carController.carSpeed > 2f)
-        {
-            float reward = getDrivenDistance();
-            // Debug.Log(reward);
-            AddReward(reward);
-        }
-        else
-        {
-            AddReward(-5f);
-        }
+        AddReward((4 - carController.getAmountOfWheelsOnRoad()) * -1f);
 
         TriggerAction(actions);
     }

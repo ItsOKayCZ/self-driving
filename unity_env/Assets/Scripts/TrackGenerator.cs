@@ -26,14 +26,14 @@ public class TrackGenerator : MonoBehaviour
     public float trackPieceSize = 2;
     public int activeTracksAtOnce = 4;
 
-    private List<TrackPiece> track = new List<TrackPiece>();
+    public List<TrackPiece> track = new List<TrackPiece>();
 
     public int triesPerTrack = 2;
     private int currentTry = 1;
 
     public GameObject checkpointParent;
     public GameObject checkpointMarker;
-    public List<GameObject> checkpoints = new List<GameObject>();
+    public List<SplineComputer> checkpoints = new List<SplineComputer>();
 
     public TrainingReplicator trainingReplicator;
 
@@ -96,7 +96,6 @@ public class TrackGenerator : MonoBehaviour
             return;
         }
 
-        RemoveCheckpoints();
         foreach (TrackPiece trackPiece in track)
         {
             Destroy(trackPiece.go);
@@ -118,14 +117,6 @@ public class TrackGenerator : MonoBehaviour
             GenerateTrackPiece();
 
         currentTry = 1;
-    }
-
-    void RemoveCheckpoints()
-    {
-        foreach (GameObject checkpoint in checkpoints)
-            Destroy(checkpoint);
-
-        checkpoints.Clear();
     }
 
     void GenerateTrackPiece()
@@ -168,10 +159,10 @@ public class TrackGenerator : MonoBehaviour
         currentTrackPiece.go = go;
         track[index] = currentTrackPiece;
 
-        AddCheckpoint(currentTrackPiece);
-
         Track currentTrack = go.GetComponent<Track>();
         currentTrack.continueAngle = angle + track[index].angle;
+
+        AddCheckpoint(currentTrackPiece);
     }
 
     public void UpdateTrack(int index)
@@ -190,7 +181,9 @@ public class TrackGenerator : MonoBehaviour
 
     void AddCheckpoint(TrackPiece track)
     {
-        GameObject checkpoint = track.go.transform.Find("Marker").gameObject;
+        SplineComputer checkpoint = track
+            .go.transform.Find("Line")
+            .gameObject.GetComponent<SplineComputer>();
         checkpoints.Add(checkpoint);
     }
 }
