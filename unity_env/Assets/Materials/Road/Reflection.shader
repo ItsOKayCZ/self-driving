@@ -191,10 +191,10 @@ Shader "Custom/Reflection"
             // o.Albedo = albedo + clamp(noiseValue + noiseValue2, 0., 1.) * _ReflectionColor.rgb;
 
             float2 noiseInput = IN.worldPos.xz * .02;
-            noiseInput.x += -_Time;
-            noiseInput.y += _Time;
-            noiseInput.x *= .3;
-            noiseInput.y *= .05;
+            noiseInput.x += -_Time * _Speed;
+            noiseInput.y += _Time * _Speed;
+            noiseInput.x *= .3 * _NoiseScaleX;
+            noiseInput.y *= .05 * _NoiseScaleY;
             float noiseValue = clamp((tex2D(_NoiseTexture, noiseInput) - 0.1) * 2., 0., 1.);
 
             fixed4 albedo = tex2D(_MainTex, IN.uv_MainTex) * _SetTexture + _MainColor * (1. - _SetTexture);
