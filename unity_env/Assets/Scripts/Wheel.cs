@@ -21,5 +21,7 @@ public class Wheel : MonoBehaviour
             // onRoad = (hit.collider.gameObject.name != "Terrain");
             onRoad = (hit.collider.gameObject.tag == "Road");
         }
+    
+        onRoad = onRoad && wCollider.isGrounded;
     }
 }
