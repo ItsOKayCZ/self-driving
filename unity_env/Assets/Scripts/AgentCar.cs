@@ -32,9 +32,14 @@ public class AgentCar : Agent
     public Rigidbody rBody;
     public TrackGenerator trackGenerator;
 
+    float deathPenalty = -10f;
+
     public void Start()
     {
         carController.useControls = false;
+
+        deathPenalty = DataChannel.getParameter("deathPenalty", -10f);
+        Debug.Log(deathPenalty);
     }
 
     public override void OnEpisodeBegin()
@@ -57,11 +62,6 @@ public class AgentCar : Agent
         sensor.AddObservation(carController.steeringAxis);
     }
 
-    private float calcDistance(Vector3 pos1, Vector3 pos2)
-    {
-        return Vector2.Distance(new Vector2(pos1.x, pos1.z), new Vector2(pos2.x, pos2.z));
-    }
-
     private float calcDistanceToCenter()
     {
         SplineSample splineSample = new SplineSample();
@@ -72,7 +72,6 @@ public class AgentCar : Agent
             new Vector2(splineSample.position.x, splineSample.position.z)
         );
         float val = 1f - (dist / 6.34f);
-        Debug.Log(val);
 
         return val;
     }
@@ -122,7 +121,7 @@ public class AgentCar : Agent
 
         if (carController.getAmountOfWheelsOnRoad() <= 2)
         {
-            SetReward(-10f);
+            SetReward(deathPenalty);
             EndEpisode();
         }
 

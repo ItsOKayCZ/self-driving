@@ -30,3 +30,5 @@ def set_parameters(data_channel) -> None:
     # Range <0, 1>
     # Default: 0.4
     data_channel.set_float_parameter("noiseSpeed", 1)
+
+    data_channel.set_float_parameter("deathPenalty", -20)
