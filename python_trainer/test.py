@@ -7,6 +7,7 @@ from data_channel import DataChannel
 from environment_parameters import set_parameters
 from mlagents_envs.environment import ActionTuple, UnityEnvironment
 from mlagents_envs.side_channel.engine_configuration_channel import EngineConfigurationChannel
+from mlagents_envs.timers import time
 from trainer import Trainer
 
 parser = argparse.ArgumentParser()
@@ -38,6 +39,8 @@ def test_model(model, env) -> None:
     behavior_name = next(iter(env.behavior_specs))
     env.reset()
 
+    just_spawned = 3
+
     while True:
         decision_steps, terminal_steps = env.get_steps(behavior_name)
 
@@ -65,6 +68,11 @@ def test_model(model, env) -> None:
             action_tuple.add_continuous(final_cont_action_values)
             env.set_actions(behavior_name, action_tuple)
 
+        elif len(terminal_steps) != 0:
+            if not just_spawned:
+                break
+            just_spawned -= 1
+
         env.step()
 
 
@@ -87,6 +95,8 @@ if __name__ == "__main__":
     print_env_info(env)
 
     model = ort.InferenceSession(TESTED_MODEL_PATH)
+
+    time_begin = time.time()
     try:
         test_model(model, env)
 
@@ -96,4 +106,6 @@ if __name__ == "__main__":
         )
 
     finally:
+        time_end = time.time()
+        print(f"Drove for: {time_end - time_begin}")
         env.close()
