@@ -3,7 +3,7 @@ from network import QNetwork
 
 # NOTE: For use in unity, different input and output shape is needed
 # Inputs:
-# - shape: (-1, 64, 64, 1) -> Vis observation
+# - shape: (-1, 120, 160, 1) -> Vis observation
 # - shape: (-1, 1, 1, 3) -> Nonvis observation
 # - shape: (-1, 1, 1, 4) -> Action mask
 #
