@@ -225,6 +225,10 @@ class Trainer:
             + np.random.normal(0.2, NOISE_INTESITY, img.shape).astype("float32") * NOISE_OPACITY
         )
 
+        # normalizing
+        blurred[blurred > 1] = 1
+        blurred[blurred < 0] = 0
+
         slice_starts = (
             blurred.shape[1] - VISUAL_INPUT_SHAPE[1],
             blurred.shape[2] - VISUAL_INPUT_SHAPE[2],
