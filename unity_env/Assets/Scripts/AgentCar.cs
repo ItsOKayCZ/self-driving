@@ -39,7 +39,6 @@ public class AgentCar : Agent
         carController.useControls = false;
 
         deathPenalty = DataChannel.getParameter("deathPenalty", -10f);
-        Debug.Log(deathPenalty);
     }
 
     public override void OnEpisodeBegin()

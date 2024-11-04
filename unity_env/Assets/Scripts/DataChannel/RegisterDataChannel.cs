@@ -1,19 +1,23 @@
-using UnityEngine;
 using Unity.MLAgents;
 using Unity.MLAgents.SideChannels;
+using UnityEngine;
 
-public class RegisterDataChannel : MonoBehaviour{
-	DataChannel dataChannel;
+public class RegisterDataChannel : MonoBehaviour
+{
+    DataChannel dataChannel;
 
-	public void Awake(){
-		dataChannel = new DataChannel();
+    public void Awake()
+    {
+        dataChannel = new DataChannel();
 
-		SideChannelManager.RegisterSideChannel(dataChannel);
-	}
+        SideChannelManager.RegisterSideChannel(dataChannel);
+    }
 
-	public void onDestroy(){
-		if(Academy.IsInitialized){
-			SideChannelManager.UnregisterSideChannel(dataChannel);
-		}
-	}
+    public void OnDestroy()
+    {
+        if (Academy.IsInitialized)
+        {
+            SideChannelManager.UnregisterSideChannel(dataChannel);
+        }
+    }
 }
