@@ -49,7 +49,7 @@ public class AgentCar : Agent
 
         currentCheckpoint = 0;
 
-        transform.position = transform.parent.position;
+        transform.position = transform.parent.position + Vector3.up * 0.0f;
         transform.rotation = Quaternion.identity;
 
         rBody.velocity = Vector3.zero;
@@ -70,7 +70,7 @@ public class AgentCar : Agent
             new Vector2(transform.position.x, transform.position.z),
             new Vector2(splineSample.position.x, splineSample.position.z)
         );
-        float val = 1f - (dist / 6.34f);
+        float val = 1f - (dist / 3.97f);
 
         return val;
     }

@@ -16,12 +16,12 @@ public class Wheel : MonoBehaviour
     private void Update()
     {
         WheelHit hit;
-        if(wCollider.GetGroundHit(out hit))
+        if (wCollider.GetGroundHit(out hit))
         {
             // onRoad = (hit.collider.gameObject.name != "Terrain");
-            onRoad = (hit.collider.gameObject.tag == "Road");
+            onRoad = hit.collider.gameObject.tag == "Road";
         }
-    
+
         onRoad = onRoad && wCollider.isGrounded;
     }
 }

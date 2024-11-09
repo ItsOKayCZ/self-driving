@@ -85,16 +85,16 @@ Material:
     - _Metallic: 0
     - _Mode: 0
     - _NoiseScale: 0.05
-    - _NoiseScaleX: 1
+    - _NoiseScaleX: 2
     - _NoiseScaleY: 1
     - _OcclusionStrength: 1
     - _Parallax: 0.02
-    - _ReflectionStrength: 2
+    - _ReflectionStrength: 0.5
     - _SetTexture: 1
     - _Smoothness: 0
     - _SmoothnessTextureChannel: 1
     - _SpecularHighlights: 1
-    - _Speed: 0.2
+    - _Speed: 0.3
     - _SrcBlend: 1
     - _UVSec: 0
     - _ZWrite: 1

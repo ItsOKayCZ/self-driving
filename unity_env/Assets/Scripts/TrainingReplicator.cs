@@ -49,7 +49,7 @@ namespace Unity.MLAgents.Areas
 
         void Start()
         {
-            roadSize = DataChannel.getParameter("roadSize", 15);
+            roadSize = DataChannel.getParameter("roadSize", 10);
             roadColor = (RoadColor)DataChannel.getParameter("roadColor", 0);
             randomBackgroundColor = System.Convert.ToBoolean(
                 DataChannel.getParameter("randomBackgroundColor", 0)

@@ -564,7 +564,7 @@ MonoBehaviour:
   buildOnEnable: 0
   _baked: 0
   _markDynamic: 1
-  _size: 15
+  _size: 10
   _color: {r: 1, g: 1, b: 1, a: 1}
   _offset: {x: 0, y: 0, z: 0}
   _normalMethod: 1
@@ -580,7 +580,7 @@ MonoBehaviour:
   _uvRotation: 0
   _meshIndexFormat: 0
   _bakedMesh: {fileID: 0}
-  colliderUpdateRate: 0.2
+  colliderUpdateRate: 0.05
   _slices: 1
   _compensateCorners: 0
   _useShapeCurve: 0
