@@ -19,10 +19,8 @@ public class AgentCar : Agent
 
     private bool pauseLearning = false;
 
-    const int k_Forward = 0;
-    const int k_Back = 1;
-    const int k_Left = 2;
-    const int k_Right = 3;
+    const int k_Speed = 0;
+    const int k_Steering = 1;
 
     public PrometeoCarController carController;
 
@@ -95,14 +93,10 @@ public class AgentCar : Agent
 
     void TriggerAction(ActionBuffers actions)
     {
-        bool goForward = actions.DiscreteActions[k_Forward] == 1;
-        // bool goForward = true;
-        bool goBack = actions.DiscreteActions[k_Back] == 1;
-        // bool goBack = false;
-        bool turnLeft = actions.DiscreteActions[k_Left] == 1;
-        bool turnRight = actions.DiscreteActions[k_Right] == 1;
+        float speed = actions.ContinuousActions[k_Speed];
+        float steering = actions.ContinuousActions[k_Steering];
 
-        carController.Movement(true, goForward, goBack, turnLeft, turnRight);
+        carController.Movement(true, speed, steering);
     }
 
     public override void OnActionReceived(ActionBuffers actions)
@@ -131,11 +125,20 @@ public class AgentCar : Agent
 
     public override void Heuristic(in ActionBuffers actionsOut)
     {
-        var discreteActionsOut = actionsOut.DiscreteActions;
+        var continuousActionsOut = actionsOut.ContinuousActions;
 
-        discreteActionsOut[k_Forward] = Input.GetKey(KeyCode.W) ? 1 : 0;
-        discreteActionsOut[k_Back] = Input.GetKey(KeyCode.S) ? 1 : 0;
-        discreteActionsOut[k_Left] = Input.GetKey(KeyCode.A) ? 1 : 0;
-        discreteActionsOut[k_Right] = Input.GetKey(KeyCode.D) ? 1 : 0;
+        continuousActionsOut[k_Speed] = 0;
+        if (Input.GetKey(KeyCode.W))
+            continuousActionsOut[k_Speed] += 1;
+
+        if (Input.GetKey(KeyCode.S))
+            continuousActionsOut[k_Speed] -= 1;
+
+        continuousActionsOut[k_Steering] = 0;
+        if (Input.GetKey(KeyCode.D))
+            continuousActionsOut[k_Steering] += 1;
+
+        if (Input.GetKey(KeyCode.A))
+            continuousActionsOut[k_Steering] -= 1;
     }
 }
