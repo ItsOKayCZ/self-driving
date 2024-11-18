@@ -57,6 +57,7 @@ public class AgentCar : Agent
     public override void CollectObservations(VectorSensor sensor)
     {
         sensor.AddObservation(carController.steeringAxis);
+        sensor.AddObservation(Mathf.Clamp(carController.carSpeed, 0f, 1f));
     }
 
     private float calcDistanceToCenter()
