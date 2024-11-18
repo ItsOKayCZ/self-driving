@@ -10900,7 +10900,6 @@ GameObject:
   - component: {fileID: 6282186034757043641}
   - component: {fileID: 6282186034757043640}
   - component: {fileID: 7970076265675784750}
-  - component: {fileID: 4633599328643637399}
   m_Layer: 0
   m_Name: Agent
   m_TagString: Untagged
@@ -11056,7 +11055,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   m_BrainParameters:
-    VectorObservationSize: 1
+    VectorObservationSize: 2
     NumStackedVectorObservations: 1
     m_ActionSpec:
       m_NumContinuousActions: 2
@@ -11095,18 +11094,6 @@ MonoBehaviour:
   m_RuntimeCameraEnable: 0
   m_ObservationStacks: 1
   m_Compression: 1
---- !u!114 &4633599328643637399
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 6282186036658918038}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 60f07460b9e2c9547aff4d2f4c12bf14, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
 --- !u!1 &6282186036672718645
 GameObject:
   m_ObjectHideFlags: 0
