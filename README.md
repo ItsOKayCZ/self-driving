@@ -1,11 +1,13 @@
-# Deep Reinforcment Learning Model for Self Driving in Amazon DeepRacer
-
-
+# Deep Reinforcment Learning Model for Self Driving
 
 
 ## Overview
-This repository contains the code and resources for developing a deep learning model aimed at enabling autonomous driving capabilities. The primary goal is to create a model capable of driving based on image input. The trained model is then deployed onto an Amazon DeepRacer vehicle for real-world testing. The training environment utilized for this project is a simulation built in Unity.
-This project is developed under FIT DataLab at CTU
+
+This repository provides the code and resources necessary for developing a deep learning model designed to enable autonomous driving from image input.
+Once trained, we deployed the model to an Amazon DeepRacer vehicle for real-world testing.
+The project uses a Unity-based simulation environment for training, with the core training processes handled by the `python_trainer` package.
+
+This project is developed under FIT DataLab at CTU.
 
 
 https://github.com/user-attachments/assets/da684805-6955-4464-866b-192f42635087
@@ -32,11 +34,9 @@ https://github.com/user-attachments/assets/da684805-6955-4464-866b-192f42635087
 
 ## Demonstration at the Open Days at FIT CTU
 
-
 Open Days FIT CTU | Demo
 :-: | :-:
-<img src="https://github.com/user-attachments/assets/8c4ca63e-f98d-41e4-bf67-03a45367a3ab" height="700"> | <video src='https://github.com/user-attachments/assets/fb21d454-1a7a-45b3-866b-6a2272fab3c0' height="700">
-
+<img src="https://github.com/ItsOKayCZ/self-driving/blob/master/resources/dod-image.jpg" width="500"> | <video src='https://github.com/user-attachments/assets/17ef7a00-c7ec-4bae-a62d-cf5371f6396b'>
 
 
 
