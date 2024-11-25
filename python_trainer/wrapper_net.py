@@ -1,5 +1,6 @@
 import torch
 from network import QNetwork
+from variables import ACTION_OPTIONS
 
 # NOTE: For use in unity, different input and output shape is needed
 # Inputs:
@@ -16,15 +17,16 @@ from network import QNetwork
 
 
 class WrapperNet(torch.nn.Module):
-    def __init__(self, qnet: QNetwork):
-        super(WrapperNet, self).__init__()
+    def __init__(self, qnet: QNetwork) -> None:
+        super().__init__()
         self.qnet = qnet
 
-    def forward(self, vis_obs: torch.Tensor, nonvis_obs: torch.Tensor):
-        qnet_result, action_index = self.qnet.get_actions(
-            (vis_obs, nonvis_obs), temperature=0, use_tensor=True
+    def forward(self, vis_obs: torch.Tensor, nonvis_obs: torch.Tensor) -> tuple[torch.Tensor, int]:
+        qnet_result, action_index = self.qnet.get_actions_tensor(
+            (vis_obs, nonvis_obs),
+            temperature=0,
         )
-        action_options = torch.tensor([[1, 0, 1, 0], [1, 0, 0, 0], [1, 0, 0, 1]])
+        action_options = ACTION_OPTIONS
         output = action_options[action_index]
 
         return qnet_result, output

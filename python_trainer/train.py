@@ -16,6 +16,7 @@ from tensorboard import program
 from torch.utils.tensorboard.writer import SummaryWriter
 from trainer import Trainer
 from variables import (
+    ACTION_OPTIONS,
     MAX_TRAINED_EPOCHS,
     MODEL_PATH,
     NONVISUAL_INPUT_SHAPE,
@@ -92,7 +93,7 @@ if __name__ == "__main__":
     engine_channel.set_configuration_parameters(time_scale=TIME_SCALE)
     env.reset()
 
-    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+    device = torch.device("cuda" if torch.cuda.is_available() and False else "cpu")
     print(f"Running on {device}")  # noqa: T201
     print_env_info(env)
 
@@ -107,6 +108,7 @@ if __name__ == "__main__":
         qnet = QNetwork(
             visual_input_shape=VISUAL_INPUT_SHAPE,
             nonvis_input_shape=NONVISUAL_INPUT_SHAPE,
+            num_actions=len(ACTION_OPTIONS),
             device=device,
         )
         trainer = Trainer(

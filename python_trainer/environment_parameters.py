@@ -1,11 +1,11 @@
 def set_parameters(data_channel) -> None:
     # Wide - 15
     # Slim - 10
-    data_channel.set_int_parameter("roadSize", 15)
+    data_channel.set_int_parameter("roadSize", 10)
 
     # 0 -> Amazon road
     # 1 -> Black & white road
-    data_channel.set_int_parameter("roadColor", 0)
+    data_channel.set_int_parameter("roadColor", 1)
 
     data_channel.set_bool_parameter("randomBackgroundColor", True)
 
@@ -31,4 +31,4 @@ def set_parameters(data_channel) -> None:
     # Default: 0.4
     data_channel.set_float_parameter("noiseSpeed", 1)
 
-    data_channel.set_float_parameter("deathPenalty", -20)
+    data_channel.set_float_parameter("deathPenalty", -40)

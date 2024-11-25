@@ -1,7 +1,6 @@
 import numpy as np
-from network import mirrored_actions
 from torch.utils.data import Dataset
-from variables import DISCOUNT, STEERING_DISCOUNT
+from variables import ACTION_OPTIONS, DISCOUNT, SPEED_WEIGHT, STEERING_DISCOUNT
 
 
 class Experience:
@@ -26,6 +25,8 @@ class Experience:
     def flip(self) -> "Experience":
         new_observations = [(np.flip(vis, 2), nonvis) for vis, nonvis in self.observations]
 
+        mirrored_actions = range(len(ACTION_OPTIONS) - 1, -1, -1)
+
         new_actions = [mirrored_actions[x] if x is not None else None for x in self.actions]
 
         new_predicted_values = [np.flip(x, 0) for x in self.predicted_values]
@@ -46,8 +47,12 @@ class Experience:
 
             action_index = self.actions[e]
             reward = self.rewards[e]
+            action = ACTION_OPTIONS[action_index]
 
-            if action_index != 1:  # is steering
+            # Reward calculation
+            reward += action[0] * SPEED_WEIGHT
+
+            if action[1] != 0:  # is steering
                 reward *= STEERING_DISCOUNT
 
             # we take the matrix of predicted values and for the actions

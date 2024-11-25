@@ -5,17 +5,19 @@ import torch
 import torch.onnx
 from buffer import Experience, ReplayBuffer, StateTargetValuesDataset
 from mlagents_envs.environment import ActionTuple, UnityEnvironment
-from network import QNetwork, action_options
+from network import QNetwork
 from scipy.ndimage import gaussian_filter
 from torch.utils.data import DataLoader
 from torch.utils.tensorboard.writer import SummaryWriter
 from tqdm import tqdm
 from variables import (
+    ACTION_OPTIONS,
     BLUR_INTENSITY,
     LEARNING_RATE,
     NOISE_INTESITY,
     NOISE_OPACITY,
     REWARD_MAX,
+    SPEED,
     VISUAL_INPUT_SHAPE,
 )
 from wrapper_net import WrapperNet
@@ -107,7 +109,7 @@ class Trainer:
                     exp.add_instance(
                         state_obs,
                         None,
-                        np.zeros(self.model.output_shape[1]),
+                        np.zeros(self.model.num_actions),
                         reward,
                     )
                     exp.rewards.pop(0)
@@ -126,8 +128,11 @@ class Trainer:
                         temperature,
                     )
 
-                    dis_action_values.append(action_options[action_index][0])
-                    cont_action_values.append([])
+                    action = ACTION_OPTIONS[action_index]
+                    # add speed
+                    action = (action[0] * SPEED, action[1])
+                    dis_action_values.append([])
+                    cont_action_values.append(action)
                     exps[agent_id].add_instance(
                         state_obs,
                         action_index,
@@ -172,7 +177,7 @@ class Trainer:
                 # We run the training step with the recorded inputs and new Q value targets.
                 x, y = batch
 
-                y_hat = self.model(x)
+                y_hat = self.model(x[0], x[1])
                 loss = self.loss_fn(y_hat, y)
                 print(f"loss {loss}")  # noqa: T201
                 # Backprop
