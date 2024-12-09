@@ -24,22 +24,6 @@ NOISE_INTESITY = 2
 
 # Action options
 SPEED = 10
-ACTION_OPTIONS = (
-    (1, 1),
-    (1, 0.5),
-    (1, 0),
-    (1, -0.5),
-    (1, 1),
-    # ----
-    (0.5, 1),
-    (0.5, 0.5),
-    (0.5, 0),
-    (0.5, -0.5),
-    (0.5, -1),
-    # ----
-    (0, 1),
-    (0, 0.5),
-    (0, 0),
-    (0, -0.5),
-    (0, -1),
-)
+SPEED_OPTIONS = [1, 0.5, 0]
+STEERING_OPTIONS = [-1, -0.5, 0, 0.5, 1]
+ACTION_OPTIONS = tuple((sp, st) for sp in SPEED_OPTIONS for st in STEERING_OPTIONS)

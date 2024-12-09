@@ -198,7 +198,7 @@ class Trainer:
                 # Vis observation
                 torch.randn((1, *self.model.visual_input_shape)),
                 # Non vis observation
-                torch.randn((1, *self.model.nonvis_input_shape)),
+                torch.randn((1, self.model.nonvis_input_shape)),
             ),
             path,
             opset_version=9,
@@ -208,13 +208,14 @@ class Trainer:
 
     @classmethod
     def get_state_and_reward(cls, step) -> tuple[tuple[np.ndarray, np.ndarray], np.float32]:  # noqa: ANN001
+        nonvis_obs = step.obs[1]
+        nonvis_obs[1] /= SPEED
         state_obs = (
             cls.image_preprocessing(step.obs[0]),
-            step.obs[1],
+            nonvis_obs,
         )
 
         # step.reward is a number from 0 to 1 representing distance from center of the road
-
         reward = (  # sigmoid function for reward
             REWARD_MAX / (1 + np.exp((-10 * step.reward) + 4))
             if 0 <= step.reward <= 1

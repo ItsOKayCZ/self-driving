@@ -25,7 +25,7 @@ class Experience:
     def flip(self) -> "Experience":
         new_observations = [(np.flip(vis, 2), nonvis) for vis, nonvis in self.observations]
 
-        mirrored_actions = range(len(ACTION_OPTIONS) - 1, -1, -1)
+        mirrored_actions = tuple((sp, st * -1) for (sp, st) in ACTION_OPTIONS)
 
         new_actions = [mirrored_actions[x] if x is not None else None for x in self.actions]
 
