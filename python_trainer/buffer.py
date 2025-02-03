@@ -27,7 +27,10 @@ class Experience:
 
         mirrored_actions = tuple((sp, st * -1) for (sp, st) in ACTION_OPTIONS)
 
-        new_actions = [mirrored_actions[x] if x is not None else None for x in self.actions]
+        new_actions = [
+            ACTION_OPTIONS.index(mirrored_actions[x]) if x is not None else None
+            for x in self.actions
+        ]
 
         new_predicted_values = [np.flip(x, 0) for x in self.predicted_values]
 
